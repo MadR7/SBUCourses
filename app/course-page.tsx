@@ -8,7 +8,6 @@ import { type Course } from '@/types/Course'
 import { ChevronDown, ChevronUp, Search, SlidersHorizontal } from 'lucide-react'
 import { CourseInfoDialog } from '@/components/course-info-dialog'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
 
 interface CourseSearchProps {
     initialCourses: Course[]
@@ -23,9 +22,6 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
     const currentMajors = useMemo(() => searchParams.get("majors")?.split(",").filter(Boolean) || [], [searchParams]);
     const currentSBCs = useMemo(() => searchParams.get("sbcs")?.split(",").filter(Boolean) || [], [searchParams]);
     const currentSearch = searchParams.get("search") || "";
-
-    const [searchInput, setSearchInput] = useState(currentSearch);
-    const debouncedSearchInput = useDebounce(searchInput, 250);
 
     const [selectedCourses, setSelectedCourses] = useState<Course[]>([]);
     const [selectedCourseInfo, setSelectedCourseInfo] = useState<Course | null>(null);
@@ -79,28 +75,24 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
 
     const handleMajorsChange = useCallback(
         (majors: string[]) => {
-            updateFilters(majors, currentSBCs, debouncedSearchInput);
+            updateFilters(majors, currentSBCs, currentSearch);
         },
-        [updateFilters, currentSBCs, debouncedSearchInput]
+        [updateFilters, currentSBCs, currentSearch]
     );
 
     const handleSBCsChange = useCallback(
         (sbcs: string[]) => {
-            updateFilters(currentMajors, sbcs, debouncedSearchInput);
+            updateFilters(currentMajors, sbcs, currentSearch);
         },
-        [updateFilters, currentMajors, debouncedSearchInput]
+        [updateFilters, currentMajors, currentSearch]
     );
 
     const handleSearchChange = useCallback(
         (search: string) => {
-            setSearchInput(search);
+            updateFilters(currentMajors, currentSBCs, search);
         },
-        []
+        [currentMajors, currentSBCs, updateFilters]
     );
-
-    useEffect(() => {
-        updateFilters(currentMajors, currentSBCs, debouncedSearchInput);
-    }, [debouncedSearchInput, currentMajors, currentSBCs, updateFilters]);
 
     const availableCourses = useMemo(
         () =>
@@ -154,7 +146,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
                             placeholder="Search courses, descriptions, etc"
                             className="w-full bg-gray-100 text-black pl-12 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]"
                             onChange={(e) => handleSearchChange(e.target.value)}
-                            value={searchInput}
+                            value={currentSearch}
                         />
                         <button onClick={handleFilterClick}><SlidersHorizontal className="w-8 h-8 ml-2"/></button>
                     </div>
