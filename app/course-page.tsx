@@ -58,7 +58,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
 
             router.replace(`/?${params.toString()}`, { scroll: false });
         }, 
-        [router, searchParams]
+        [router]
     );
     
 
