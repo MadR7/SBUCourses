@@ -30,7 +30,8 @@ export const getCourses = cache(async (params: z.infer<typeof courseQuerySchema>
             } 
           : {}
       ]
-    },
+    }, 
+    take: 50,
     orderBy: {
       Course_Number: 'asc'
     },
