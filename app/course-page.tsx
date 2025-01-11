@@ -5,13 +5,6 @@ import { CourseList } from '@/components/course-list'
 import FilterScreen from '@/components/filter-screen'
 import { useDebounce } from '@/hooks/use-debounce'
 import { type Course } from '@/types/Course'
-import { useCourseStore } from '@/stores/courseStore'
-import { useFilterStore } from '@/stores/filterStore'
-import {
-    parseAsArrayOf,
-    parseAsString,
-    useQueryState,
-  } from "nuqs";
 import { ChevronDown, ChevronUp, Search, SlidersHorizontal } from 'lucide-react'
 import { CourseInfoDialog } from '@/components/course-info-dialog'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -26,18 +19,15 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const currentMajors = useMemo(() => searchParams.get("majors")?.split(",") || [], [searchParams]);
-    const currentSBCs = useMemo(() => searchParams.get("sbcs")?.split(",") || [], [searchParams]);
+    const currentMajors = useMemo(() => searchParams.get("majors")?.split(",").filter(Boolean) || [], [searchParams]);
+    const currentSBCs = useMemo(() => searchParams.get("sbcs")?.split(",").filter(Boolean) || [], [searchParams]);
     const currentSearch = searchParams.get("search") || "";
-    
-    const [courses, setCourses] = useState<Course[]>(initialCourses);
+
     const [selectedCourses, setSelectedCourses] = useState<Course[]>([]);
     const [selectedCourseInfo, setSelectedCourseInfo] = useState<Course | null>(null);
     const [showSelectedCourses, setShowSelectedCourses] = useState(true);
     const [filterScreen, setFilterScreen] = useState(false);
-    const [searchInput, setSearchInput] = useState(currentSearch);
 
-    const debouncedSearch = useDebounce(searchInput, 150)
     const toggleCourse = (course: Course) => {
     if (selectedCourses.includes(course)){
         setSelectedCourses(selectedCourses.filter(c => c.id !== course.id));
@@ -52,17 +42,23 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
 
             if (majors.length){
                 params.set("majors", majors.join(","));
+            }else{
+                params.delete("majors");
             }
             if (sbcs.length){
                 params.set("sbcs", sbcs.join(","));
+            }else{
+                params.delete("sbcs");
             }
             if (search){
                 params.set("search", search);
+            }else{
+                params.delete("search");
             }
 
             router.replace(`/?${params.toString()}`, { scroll: false });
         }, 
-        [router]
+        [router, searchParams]
     );
     
 
@@ -70,16 +66,16 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
     
     const handleMajorsChange = useCallback(
         (majors: string[]) => {
-            updateFilters(majors, currentSBCs, debouncedSearch);
+            updateFilters(majors, currentSBCs, currentSearch);
         },
-        [updateFilters, currentSBCs, debouncedSearch]
+        [updateFilters, currentSBCs, currentSearch]
     )
 
     const handleSBCsChange = useCallback(
         (sbcs: string[]) => {
-            updateFilters(currentMajors, sbcs, debouncedSearch);
+            updateFilters(currentMajors, sbcs, currentSearch);
         },
-        [updateFilters, currentMajors, debouncedSearch]
+        [updateFilters, currentMajors, currentSearch]
     )
 
     const handleSearchChange = useCallback(
@@ -89,8 +85,12 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
         [updateFilters, currentMajors, currentSBCs]
     )
 
-    const availableCourses = courses.filter(
-        course => !selectedCourses.some(selected => selected.id === course.id)
+    const availableCourses = useMemo(
+        () =>
+            initialCourses.filter(
+                (course) => !selectedCourses.some((selected) => selected.id === course.id)
+            ),
+        [initialCourses, selectedCourses]
     );
         
     return (
