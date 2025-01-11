@@ -2,8 +2,7 @@
 
 import React from "react"
 import {useSearchParams} from "next/navigation"
-import { useState, useEffect } from "react"
-import { useFilterStore } from "@/stores/filterStore"
+import { useEffect } from "react"
 
 interface FilterScreenProps {
     filterScreen: boolean;

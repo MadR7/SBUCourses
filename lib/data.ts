@@ -43,6 +43,9 @@ export async function getDepartments() {
   const courses = await prisma.courses.findMany({
     select: {
       Department: true,
+    },
+    orderBy: {
+      Department: 'asc',
     }
   });
 
@@ -54,6 +57,9 @@ export async function getSBCs() {
   const courses = await prisma.courses.findMany({
     select: {
       SBCs: true
+    },
+    orderBy:{
+      SBCs: 'asc'
     }
   });
 
