@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model courses {
+  Department_Code String?
+  Department      String?
+  Course_Number   String?
+  Title           String?
+  Description     String?
+  Credits         BigInt?
+  Prerequisites   String?
+  Corequisites    String?  @default("None")
+  SBCs            String[]
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+}

@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* SBU Colors */
+  --sbu-red: 153, 0, 0;
+  --sbu-black: 0, 0, 0;
+  --sbu-navy: 22, 36, 62;
+  --sbu-navy-light: 184, 206, 245;
+
+  --sbu-grey: 130, 130, 130;
+  
+  /* UI Colors */
+  --ui-white: 245, 245, 245;
+  --ui-light-grey: 230, 230, 230;
+}
+
+@layer base {
+  :root {
+    --background: var(--ui-white);
+    --foreground: var(--sbu-black);
+    --card: var(--sbu-navy-light);
+    --card-foreground: var(--sbu-black);
+    --popover: var(--ui-white);
+    --popover-foreground: var(--sbu-black);
+    --primary: var(--sbu-red);
+    --primary-foreground: var(--ui-white);
+    --secondary: var(--ui-light-grey);
+    --secondary-foreground: var(--sbu-black);
+    --muted: var(--ui-light-grey);
+    --muted-foreground: var(--sbu-grey);
+    --accent: var(--sbu-red);
+    --accent-foreground: var(--ui-white);
+    --destructive: var(--sbu-red);
+    --destructive-foreground: var(--ui-white);
+    --border: var(--ui-light-grey);
+    --input: var(--ui-white);
+    --ring: var(--sbu-red);
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: var(--sbu-black);
+    --foreground: var(--ui-white);
+    --card: var(--sbu-navy);
+    --card-foreground: var(--ui-white);
+    --popover: var(--sbu-navy);
+    --popover-foreground: var(--ui-white);
+    --primary: var(--sbu-red);
+    --primary-foreground: var(--ui-white);
+    --secondary: var(--sbu-navy);
+    --secondary-foreground: var(--ui-white);
+    --muted: var(--sbu-navy);
+    --muted-foreground: var(--sbu-grey);
+    --accent: var(--sbu-red);
+    --accent-foreground: var(--ui-white);
+    --destructive: var(--sbu-red);
+    --destructive-foreground: var(--ui-white);
+    --border: var(--sbu-navy);
+    --input: var(--sbu-navy);
+    --ring: var(--sbu-red);
+  }
+}
