@@ -34,7 +34,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
     }else{
         setSelectedCourses([...selectedCourses, course]);
     }
-    }, []);
+    }, [selectedCourses]);
     const handleCourseInfo = useCallback((course: Course) => {
         setSelectedCourseInfo(course);
     }, []);
