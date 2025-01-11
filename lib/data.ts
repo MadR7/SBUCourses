@@ -25,15 +25,12 @@ export const getCourses = cache(async (params: z.infer<typeof courseQuerySchema>
                 { Title: { contains: params.search, mode: 'insensitive' } },
                 { Course_Number: { contains: params.search, mode: 'insensitive' } },
                 { Description: { contains: params.search, mode: 'insensitive' } },
-                { SBCs: { hasEvery: [params.search] } },
               ]
             } 
           : {}
       ]
     }, 
-    orderBy: {
-      Course_Number: 'asc'
-    },
+    
     take: 500
   });
   
