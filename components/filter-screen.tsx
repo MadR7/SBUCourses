@@ -65,7 +65,7 @@ export default function FilterScreen(
             >
                 <div className="w-full flex flex-col md:w-[35%] border-b md:border-b-0 md:border-r p-4 md:p-6">
                     <div className="space-y-4 bg-card/20 p-4 rounded-md overflow-auto">
-                        <h2 className="text-lg md:text-xl font-semibold">Majors</h2>
+                        <h2 className="text-lg md:text-xl font-semibold">Departments</h2>
                         <div className="space-y-1 max-h-[200px] md:max-h-none ">
                             {initialDepartments.map((department, index) => (
                                 <button
