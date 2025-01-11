@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CourseList } from '@/components/course-list'
 import FilterScreen from '@/components/filter-screen'
 import { useDebounce } from '@/hooks/use-debounce'
@@ -14,56 +14,88 @@ import {
   } from "nuqs";
 import { ChevronDown, ChevronUp, Search, SlidersHorizontal } from 'lucide-react'
 import { CourseInfoDialog } from '@/components/course-info-dialog'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 interface CourseSearchProps {
+    initialCourses: Course[]
     initialDepartments: (string | null)[]
     initialSBCs: string[]
 }
 
-export function CoursePage({ initialDepartments, initialSBCs }: CourseSearchProps) {
+export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: CourseSearchProps) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
 
-    const [majorsSelected, setMajorSelected] = useQueryState(
-        "majors",
-        parseAsArrayOf(parseAsString).withDefault([])
-      );
-    const [sbcsSelected, setSBCSelected] = useQueryState(
-    "sbcs",
-    parseAsArrayOf(parseAsString).withDefault([])
-    );
-    const {
-    courses,
-    selectedCourses,
-    selectedCourseInfo,
-    showSelectedCourses,
-    fetchCourses,
-    courseActions
-    } = useCourseStore();
+    const currentMajors = useMemo(() => searchParams.get("majors")?.split(",") || [], [searchParams]);
+    const currentSBCs = useMemo(() => searchParams.get("sbcs")?.split(",") || [], [searchParams]);
+    const currentSearch = searchParams.get("search") || "";
+    
+    const [courses, setCourses] = useState<Course[]>(initialCourses);
+    const [selectedCourses, setSelectedCourses] = useState<Course[]>([]);
+    const [selectedCourseInfo, setSelectedCourseInfo] = useState<Course | null>(null);
+    const [showSelectedCourses, setShowSelectedCourses] = useState(true);
+    const [filterScreen, setFilterScreen] = useState(false);
+    const [searchInput, setSearchInput] = useState(currentSearch);
 
-    const {
-    search,
-    filterScreen,
-    filterActions,
-    } = useFilterStore();
-
-    const debouncedSearch = useDebounce(search, 150)
+    const debouncedSearch = useDebounce(searchInput, 150)
     const toggleCourse = (course: Course) => {
     if (selectedCourses.includes(course)){
-        courseActions.setSelectedCourses(selectedCourses.filter(c => c.id !== course.id));
+        setSelectedCourses(selectedCourses.filter(c => c.id !== course.id));
     }else{
-        courseActions.setSelectedCourses([...selectedCourses, course]);
+        setSelectedCourses([...selectedCourses, course]);
     }
     };
-    const handleFilterClick = () => filterActions.setFilterScreen(true);
-    useEffect(() => {
-        fetchCourses({sbc:sbcsSelected, department: majorsSelected, search: debouncedSearch});
-    }, [fetchCourses, sbcsSelected, majorsSelected, debouncedSearch]);
+
+    const updateFilters = useCallback(
+        (majors: string[], sbcs: string[], search?: string) => {
+            const params = new URLSearchParams();
+
+            if (majors.length){
+                params.set("majors", majors.join(","));
+            }
+            if (sbcs.length){
+                params.set("sbcs", sbcs.join(","));
+            }
+            if (search){
+                params.set("search", search);
+            }
+
+            router.replace(`/?${params.toString()}`, { scroll: false });
+        }, 
+        [router]
+    );
+    
+
+    const handleFilterClick = () => setFilterScreen(true);
+    
+    const handleMajorsChange = useCallback(
+        (majors: string[]) => {
+            updateFilters(majors, currentSBCs, debouncedSearch);
+        },
+        [updateFilters, currentSBCs, debouncedSearch]
+    )
+
+    const handleSBCsChange = useCallback(
+        (sbcs: string[]) => {
+            updateFilters(currentMajors, sbcs, debouncedSearch);
+        },
+        [updateFilters, currentMajors, debouncedSearch]
+    )
+
+    const handleSearchChange = useCallback(
+        (search: string) => {
+            updateFilters(currentMajors, currentSBCs, search);
+        },
+        [updateFilters, currentMajors, currentSBCs]
+    )
+
     const availableCourses = courses.filter(
         course => !selectedCourses.some(selected => selected.id === course.id)
     );
         
     return (
         <div>
-            {filterScreen && <FilterScreen initialDepartments={initialDepartments} initialSBCs={initialSBCs} setMajorsSelected={setMajorSelected} setSBCSelected={setSBCSelected} />}
+            {filterScreen && <FilterScreen initialDepartments={initialDepartments} initialSBCs={initialSBCs} filterScreen={filterScreen} setFilterScreen={setFilterScreen} setMajorsSelected={handleMajorsChange} setSBCSelected={handleSBCsChange} />}
             <div>
                 <section className="mb-8">
                     <div className="flex items-center justify-between mb-2">
@@ -71,7 +103,7 @@ export function CoursePage({ initialDepartments, initialSBCs }: CourseSearchProp
                         <div className="mb-6">
                         <div 
                             className="flex items-center gap-2 cursor-pointer mb-2"
-                            onClick={() => courseActions.setShowSelectedCourses(!showSelectedCourses)}
+                            onClick={() => setShowSelectedCourses(!showSelectedCourses)}
                         >
                             <h2 className="text-lg font-semibold">Your Courses</h2>
                             {showSelectedCourses ? (
@@ -85,7 +117,7 @@ export function CoursePage({ initialDepartments, initialSBCs }: CourseSearchProp
                             courses={selectedCourses}
                             isSelected={true} 
                             onToggleCourse={toggleCourse}
-                            onInfoClick={courseActions.setSelectedCourseInfo}
+                            onInfoClick={setSelectedCourseInfo}
                             />
                         )}
                         </div>
@@ -101,7 +133,7 @@ export function CoursePage({ initialDepartments, initialSBCs }: CourseSearchProp
                         type="text"
                         placeholder="Search courses, sbcs, etc"
                         className="w-full bg-gray-100 text-black pl-12 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]"
-                        onChange={(e) => filterActions.setSearch(e.target.value)}
+                        onChange={(e) => handleSearchChange(e.target.value)}
                         />
                         <button onClick={handleFilterClick}><SlidersHorizontal className="w-8 h-8 ml-2"/></button>
                     </div>
@@ -109,7 +141,7 @@ export function CoursePage({ initialDepartments, initialSBCs }: CourseSearchProp
                         courses={availableCourses}
                         isSelected={false}
                         onToggleCourse={toggleCourse}
-                        onInfoClick={courseActions.setSelectedCourseInfo}
+                        onInfoClick={setSelectedCourseInfo}
 
                     />
                 </section>
@@ -117,7 +149,7 @@ export function CoursePage({ initialDepartments, initialSBCs }: CourseSearchProp
             <CourseInfoDialog
                 course={selectedCourseInfo}
                 isOpen={!!selectedCourseInfo}
-                onClose={() => courseActions.setSelectedCourseInfo(null)}
+                onClose={() => setSelectedCourseInfo(null)}
             />
     </div>
     )

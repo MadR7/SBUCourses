@@ -31,6 +31,9 @@ export const getCourses = cache(async (params: z.infer<typeof courseQuerySchema>
           : {}
       ]
     },
+    orderBy: {
+      Course_Number: 'asc'
+    },
   });
   
   return courses;

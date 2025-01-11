@@ -6,6 +6,8 @@ import { useState, useEffect } from "react"
 import { useFilterStore } from "@/stores/filterStore"
 
 interface FilterScreenProps {
+    filterScreen: boolean;
+    setFilterScreen: React.Dispatch<React.SetStateAction<boolean>>;
     initialDepartments: (string | null)[];
     initialSBCs: string[];
     setMajorsSelected: (majors: string[]) => void;
@@ -13,18 +15,15 @@ interface FilterScreenProps {
 }
 
 export default function FilterScreen(
-    {initialDepartments, initialSBCs, setMajorsSelected, setSBCSelected}: FilterScreenProps
+    {filterScreen, setFilterScreen, initialDepartments, initialSBCs, setMajorsSelected, setSBCSelected}: FilterScreenProps
 ){
     
-    const {
-        filterScreen,
-        filterActions,
-    } = useFilterStore()
+    
     const searchParams = useSearchParams();
     let selectedMajors = searchParams.get("majors")?.split(",") || []
     let selectedSBCs = searchParams.get("sbcs")?.split(",") || []
     const handleFilterClose = () =>{
-        filterActions.setFilterScreen(false)
+        setFilterScreen(false)
     }
 
     const handleSBCClick = (sbc: string) => {

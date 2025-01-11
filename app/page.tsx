@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getDepartments, getSBCs } from "@/lib/data";
+import { getCourses, getDepartments, getSBCs } from "@/lib/data";
 import { CoursePage } from "./course-page";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -7,9 +7,21 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 export const revalidate = 2592000;
 
-export default async function Home(){
-    const departments = await getDepartments();
-    const sbcs = await getSBCs();
+export default async function Home({
+    searchParams,
+}:{
+    searchParams: {majors?: string, sbcs?: string, search?: string}
+}){
+
+    const majorsSelected = (searchParams.majors?.split(",") || []).filter((major) => major !== null) as string[];
+    const sbcsSelected = (searchParams.sbcs?.split(",") || []).filter((sbc) => sbc !== null) as string[];
+    const searchQuery = searchParams.search || "";
+
+    const [departments, sbcs, courses] = await Promise.all([
+        getDepartments(),
+        getSBCs(),
+        getCourses({sbc: sbcsSelected, department: majorsSelected, search: searchQuery})
+    ]);
     return (
         <div className="min-h-screen bg-background text-foreground">
             <header className="px-6 py-4 flex items-center justify-between border-b border-muted">
@@ -27,7 +39,7 @@ export default async function Home(){
             </header>
             <main className="container mx-auto px-4 py-6 max-w-7xl">
                 <Suspense fallback={<div>Loading...</div>}>
-                    <CoursePage initialDepartments={departments} initialSBCs={sbcs} />
+                    <CoursePage initialCourses={courses} initialDepartments={departments} initialSBCs={sbcs} />
                 </Suspense>
             </main>
         </div>
