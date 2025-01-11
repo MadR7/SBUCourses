@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from 'react';
+import LoadingCourses from './loading';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -26,7 +27,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div><LoadingCourses /></div>}>
           <NuqsAdapter>
           {children}
           </NuqsAdapter>
