@@ -2,14 +2,14 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { type Course } from "@/types/Course";
-
+import { memo } from "react";
 interface CourseInfoDialogProps {
   course: Course | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function CourseInfoDialog({ course, isOpen, onClose }: CourseInfoDialogProps) {
+export const CourseInfoDialog = memo(function CourseInfoDialog({ course, isOpen, onClose }: CourseInfoDialogProps) {
   if (!course) return null;
 
   return (
@@ -47,4 +47,4 @@ export function CourseInfoDialog({ course, isOpen, onClose }: CourseInfoDialogPr
       </DialogContent>
     </Dialog>
   );
-}
+})

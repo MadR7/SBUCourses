@@ -3,6 +3,7 @@
 import { Star, Info } from "lucide-react";
 import { type Course } from "@/types/Course";
 import { memo } from "react";
+import { useCallback } from "react";
 
 interface CourseListProps {
   courses: Course[];
@@ -24,6 +25,14 @@ const CourseItem = memo(
     onToggle,
     onInfo
   }: CourseItemProps) {
+    const handleToggle = useCallback((e: React.MouseEvent) => {
+      e.stopPropagation();
+      onToggle(course);
+    }, [course, onToggle]);
+  
+    const handleInfo = useCallback(() => {
+      onInfo(course);
+    }, [course, onInfo]);
     return (
       <div
             key={course.id}
@@ -33,12 +42,12 @@ const CourseItem = memo(
               className={`w-5 h-5 cursor-pointer ${
                 isSelected ? 'text-[rgb(var(--sbu-red))]' : 'text-muted-foreground group-hover:text-[rgb(var(--sbu-red))]'
               }`}
-              onClick={() => onToggle(course)}
+              onClick={handleToggle}
             />
             
             <div 
               className="grid grid-cols-[1fr,auto,auto] gap-8 cursor-pointer"
-              onClick={() => onInfo(course)}
+              onClick={handleInfo}
             >
               <div>
                 <h3 className="font-bold">{course.Title}</h3>
@@ -53,7 +62,7 @@ const CourseItem = memo(
           </div>
 )})
 
-export function CourseList({ courses, isSelected, onToggleCourse, onInfoClick }: CourseListProps) {
+export const CourseList = memo(function CourseList({ courses, isSelected, onToggleCourse, onInfoClick }: CourseListProps) {
   return (
     <div className="space-y-2">
       {courses.map((course) => (
@@ -67,4 +76,4 @@ export function CourseList({ courses, isSelected, onToggleCourse, onInfoClick }:
       ))}
     </div>
   );
-}
+})

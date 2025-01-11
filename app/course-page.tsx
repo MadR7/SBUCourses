@@ -28,14 +28,20 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
     const [showSelectedCourses, setShowSelectedCourses] = useState(true);
     const [filterScreen, setFilterScreen] = useState(false);
 
-    const toggleCourse = (course: Course) => {
+    const toggleCourse = useCallback((course: Course) => {
     if (selectedCourses.includes(course)){
         setSelectedCourses(selectedCourses.filter(c => c.id !== course.id));
     }else{
         setSelectedCourses([...selectedCourses, course]);
     }
-    };
+    }, []);
+    const handleCourseInfo = useCallback((course: Course) => {
+        setSelectedCourseInfo(course);
+    }, []);
 
+    const handleCloseCourseInfo = useCallback(() => {
+        setSelectedCourseInfo(null);
+    }, []);
     const updateFilters = useCallback(
         (majors: string[], sbcs: string[], search?: string) => {
             const params = new URLSearchParams();
@@ -117,7 +123,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
                             courses={selectedCourses}
                             isSelected={true} 
                             onToggleCourse={toggleCourse}
-                            onInfoClick={setSelectedCourseInfo}
+                            onInfoClick={handleCourseInfo}
                             />
                         )}
                         </div>
@@ -141,7 +147,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
                         courses={availableCourses}
                         isSelected={false}
                         onToggleCourse={toggleCourse}
-                        onInfoClick={setSelectedCourseInfo}
+                        onInfoClick={handleCourseInfo}
 
                     />
                 </section>
@@ -149,7 +155,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
             <CourseInfoDialog
                 course={selectedCourseInfo}
                 isOpen={!!selectedCourseInfo}
-                onClose={() => setSelectedCourseInfo(null)}
+                onClose={handleCloseCourseInfo}
             />
     </div>
     )

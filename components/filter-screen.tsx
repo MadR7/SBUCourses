@@ -16,8 +16,6 @@ interface FilterScreenProps {
 export default function FilterScreen(
     {filterScreen, setFilterScreen, initialDepartments, initialSBCs, setMajorsSelected, setSBCSelected}: FilterScreenProps
 ){
-    
-    
     const searchParams = useSearchParams();
     let selectedMajors = searchParams.get("majors")?.split(",") || []
     let selectedSBCs = searchParams.get("sbcs")?.split(",") || []
