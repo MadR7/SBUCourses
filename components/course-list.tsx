@@ -38,18 +38,18 @@ const CourseItem = memo(
             
             <div 
               className="grid grid-cols-[1fr,auto,auto] gap-8 cursor-pointer"
-              onClick={() => onToggle(course)}
+              onClick={() => onInfo(course)}
             >
               <div>
                 <h3 className="font-bold">{course.Title}</h3>
                 <p className="text-sm text-muted-foreground">{course.Course_Number}</p>
               </div>
             </div>
-
-            <Info 
-              className="w-5 h-5 text-muted-foreground hover:text-foreground cursor-pointer" 
-              onClick={() => onInfo(course)}
-            />
+              
+            <div className="bg-background p-3 rounded-lg">
+              <p className="text-sm text-muted-foreground">SBCs</p>
+              {course.SBCs.join() !== "" ? <p className="text-sm font-semibold text-green-600">{course.SBCs.join()}</p>: <p className="text-xs">None</p>}             
+            </div>
           </div>
 )})
 

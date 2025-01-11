@@ -39,6 +39,10 @@ export function CourseInfoDialog({ course, isOpen, onClose }: CourseInfoDialogPr
             <p className="text-sm text-muted-foreground">Department</p>
             <p className="font-semibold">{course.Department}</p>
           </div>
+          <div className="bg-background p-3 rounded-lg">
+            <p className="text-sm text-muted-foreground">Description</p>
+            <p className="font-semibold">{course.Description}</p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

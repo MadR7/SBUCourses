@@ -23,7 +23,9 @@ export const getCourses = cache(async (params: z.infer<typeof courseQuerySchema>
           ? {
               OR: [
                 { Title: { contains: params.search, mode: 'insensitive' } },
-                { Course_Number: { contains: params.search, mode: 'insensitive' } }
+                { Course_Number: { contains: params.search, mode: 'insensitive' } },
+                { Description: { contains: params.search, mode: 'insensitive' } },
+                { SBCs: { hasEvery: [params.search] } },
               ]
             } 
           : {}
