@@ -34,12 +34,12 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
     const [popUp, setPopUp] = useState(false);
 
     const toggleCourse = useCallback((course: Course) => {
-        if (selectedCourses.includes(course)){
-            setSelectedCourses(selectedCourses.filter(c => c.id !== course.id));
-        }else{
-            setSelectedCourses([...selectedCourses, course]);
-        }
-    }, [selectedCourses]);
+        // if (selectedCourses.includes(course)){
+        //     setSelectedCourses(selectedCourses.filter(c => c.id !== course.id));
+        // }else{
+        //     setSelectedCourses([...selectedCourses, course]);
+        // }
+    }, []);
 
     const handleCourseInfo = useCallback((course: Course) => {
         setPopUp(true);
@@ -118,7 +118,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
             {popUp && <CourseInfoDialog popUp={popUp} course={selectedCourseInfo} handleClose={handlePopUpClose}/>}
             {filterScreen && <FilterScreen initialDepartments={initialDepartments} initialSBCs={initialSBCs} filterScreen={filterScreen} setFilterScreen={setFilterScreen} setMajorsSelected={handleMajorsChange} setSBCSelected={handleSBCsChange} />}
             <div>
-                <section className="mb-8">
+                {/* <section className="mb-8">
                     <div className="flex items-center justify-between mb-2">
                         {selectedCourses.length > 0 && (
                         <div className="mb-6">
@@ -144,7 +144,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
                         </div>
                     )}
                     </div>
-                </section>
+                </section> */}
 
                 <section>
                     <div className="relative flex flex-row items-center justify-center mb-4">
@@ -164,24 +164,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
                         onToggleCourse={toggleCourse}
                         onInfoClick={handleCourseInfo}
                     />
-                    {/* <div className='mt-4'>
-                        <Pagination>
-                            <PaginationContent>
-                                <PaginationItem>
-                                    <PaginationPrevious href="#" />
-                                </PaginationItem>
-                                <PaginationItem>
-                                    <PaginationLink href="#">1</PaginationLink>
-                                </PaginationItem>
-                                <PaginationItem>
-                                    <PaginationEllipsis />
-                                </PaginationItem>
-                                <PaginationItem>
-                                    <PaginationNext href="#" />
-                                </PaginationItem>
-                            </PaginationContent>
-                        </Pagination>
-                    </div> */}
+
                     
                 </section>
             </div>
