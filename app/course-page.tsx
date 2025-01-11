@@ -31,6 +31,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
     const [selectedCourseInfo, setSelectedCourseInfo] = useState<Course | null>(null);
     const [showSelectedCourses, setShowSelectedCourses] = useState(true);
     const [filterScreen, setFilterScreen] = useState(false);
+    const [popUp, setPopUp] = useState(false);
 
     const toggleCourse = useCallback((course: Course) => {
         if (selectedCourses.includes(course)){
@@ -41,6 +42,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
     }, [selectedCourses]);
 
     const handleCourseInfo = useCallback((course: Course) => {
+        setPopUp(true);
         setSelectedCourseInfo(course);
     }, []);
 
@@ -107,9 +109,13 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
             ),
         [initialCourses, selectedCourses]
     );
-
+    const handlePopUpClose = () => {
+        setPopUp(false);
+        handleCloseCourseInfo();
+    }
     return (
         <div>
+            {popUp && <CourseInfoDialog popUp={popUp} course={selectedCourseInfo} handleClose={handlePopUpClose}/>}
             {filterScreen && <FilterScreen initialDepartments={initialDepartments} initialSBCs={initialSBCs} filterScreen={filterScreen} setFilterScreen={setFilterScreen} setMajorsSelected={handleMajorsChange} setSBCSelected={handleSBCsChange} />}
             <div>
                 <section className="mb-8">
@@ -158,7 +164,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
                         onToggleCourse={toggleCourse}
                         onInfoClick={handleCourseInfo}
                     />
-                    <div className='mt-4'>
+                    {/* <div className='mt-4'>
                         <Pagination>
                             <PaginationContent>
                                 <PaginationItem>
@@ -175,14 +181,11 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
                                 </PaginationItem>
                             </PaginationContent>
                         </Pagination>
-                    </div>
+                    </div> */}
+                    
                 </section>
             </div>
-            <CourseInfoDialog
-                course={selectedCourseInfo}
-                isOpen={!!selectedCourseInfo}
-                onClose={handleCloseCourseInfo}
-            />
+            
         </div>
     )
 }

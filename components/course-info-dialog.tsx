@@ -1,14 +1,13 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { type Course } from "@/types/Course";
-import { memo } from "react";
+import React, { memo, useEffect } from "react";
 
 interface CourseInfoDialogProps {
+  popUp: boolean;
   course: Course | null;
-  isOpen: boolean;
-  onClose: () => void;
+  handleClose: () => void;
 }
 
-export const CourseInfoDialog = memo(function CourseInfoDialog({ course, isOpen, onClose }: CourseInfoDialogProps) {
+export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, handleClose }: CourseInfoDialogProps) {
   const LoadingSkeleton = () => (
     <div className="space-y-4">
       <div>
@@ -42,17 +41,34 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ course, isOpen,
       </div>
     </div>
   );
-
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {   
+                handleClose()
+        }
+    }
+    if (popUp) {
+        window.addEventListener("keydown", handleEscapeKey)
+        return () => {
+          window.removeEventListener("keydown", handleEscapeKey)
+        }
+    }            
+  })
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-card text-card-foreground max-w-2xl mx-auto w-[95%] sm:w-[85%] max-h-[80vh] overflow-hidden flex flex-col">
-        <DialogHeader className="px-6 py-4">
-          <DialogTitle className="text-lg flex justify-center font-bold">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center  backdrop-blur-sm"
+      onClick={handleClose}
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="bg-card border-white border-2 text-card-foreground max-w-2xl mx-auto w-[95%] sm:w-[85%] max-h-[80vh] overflow-hidden flex flex-col">
+        <div className="px-6 py-4">
+          <div className="text-lg flex justify-center font-bold">
             {course ? course.Course_Number : (
               <div className="h-7 w-36 bg-muted rounded animate-pulse" />
             )}
-          </DialogTitle>
-        </DialogHeader>
+          </div>
+        </div>
         <div className="overflow-y-auto flex-1 px-6 pb-6">
           {course ? (
             <div className="space-y-4">
@@ -87,8 +103,8 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ course, isOpen,
             <LoadingSkeleton />
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+      </div>
   );
 });
 
