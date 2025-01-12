@@ -8,5 +8,5 @@ export interface Course {
   Prerequisites: string | null;
   Corequisites: string | null;
   SBCs: string[];
-  id: string;
+  course_id: string;
 }

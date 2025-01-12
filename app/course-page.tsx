@@ -105,7 +105,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
     const availableCourses = useMemo(
         () =>
             initialCourses.filter(
-                (course) => !selectedCourses.some((selected) => selected.id === course.id)
+                (course) => !selectedCourses.some((selected) => selected.course_id === course.course_id)
             ),
         [initialCourses, selectedCourses]
     );
