@@ -35,7 +35,7 @@ const CourseItem = memo(
     }, [course, onInfo]);
     return (
       <div
-            key={course.id}
+            key={course.course_id}
             className="grid grid-cols-[auto,1fr,auto] gap-4 p-4 bg-card text-card-foreground rounded-lg hover:bg-muted transition-colors group"
           >
             <Star 
@@ -67,7 +67,7 @@ export const CourseList = memo(function CourseList({ courses, isSelected, onTogg
     <div className="space-y-2">
       {courses.map((course) => (
         <CourseItem 
-          key={course.id}
+          key={course.course_id}
           course={course}
           isSelected={isSelected}
           onToggle={onToggleCourse}

@@ -19,9 +19,9 @@ export async function GET(request: Request) {
     const courses = await getCourses({sbc:sbcs, department: departments, search: search});
     return NextResponse.json(courses, {
       headers: {
-        'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=59'
+        'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800'
       }
-    });
+    });    
   } catch (error) {
     console.error('Error fetching courses:', error);
     return NextResponse.json(

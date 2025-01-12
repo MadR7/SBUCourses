@@ -19,5 +19,5 @@ model courses {
   Prerequisites   String?
   Corequisites    String?  @default("None")
   SBCs            String[]
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  course_id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 }

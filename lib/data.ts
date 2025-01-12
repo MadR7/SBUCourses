@@ -1,8 +1,7 @@
-// lib/data.ts
 import { prisma } from "./prisma";
 import { cache } from 'react'
 import { z } from 'zod'
-
+import { unstable_cache } from "next/cache";
 export const courseQuerySchema = z.object({
   department: z.array(z.string()).optional(),
   sbc: z.array(z.string()).optional(),
@@ -36,30 +35,28 @@ export const getCourses = cache(async (params: z.infer<typeof courseQuerySchema>
   return courses;
 });
 
-export async function getDepartments() {
-  const courses = await prisma.courses.findMany({
-    select: {
-      Department: true,
-    },
-    orderBy: {
-      Department: 'asc',
-    }
-  });
+export const getDepartments = unstable_cache(
+  async () => {
+    const courses = await prisma.courses.findMany({
+      select: { Department: true },
+      orderBy: { Department: 'asc' }
+    });
+    const departments = [...new Set(courses.flatMap(course => course.Department))];
+    return departments;
+  },
+  ['departments'],
+  { revalidate: 86400 }
+);
 
-  const flattenedDepartments = courses.flatMap(course => course.Department);
-  return [...new Set(flattenedDepartments)];
-}
-
-export async function getSBCs() {
-  const courses = await prisma.courses.findMany({
-    select: {
-      SBCs: true
-    },
-    orderBy:{
-      SBCs: 'asc'
-    }
-  });
-
-  const flattenedSBCs = courses.flatMap(course => course.SBCs);
-  return [...new Set(flattenedSBCs)];
-}
+export const getSBCs = unstable_cache(
+  async () => {
+    const courses = await prisma.courses.findMany({
+      select: { SBCs: true },
+      orderBy: { SBCs: 'asc' }
+    });
+    const sbcs = [...new Set(courses.flatMap(course => course.SBCs))];
+    return sbcs;
+  },
+  ['sbcs'],
+  { revalidate: 86400 }
+);
