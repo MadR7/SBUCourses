@@ -32,6 +32,9 @@ export default function FilterScreen(
             setSBCSelected(newSBCs);
         }
     }
+    const handleSBCClear = () =>{
+        setSBCSelected([]);
+    }
     const handleMajorClick = (major: string) => {
         if (selectedMajors.includes(major)) {
             const newMajors = selectedMajors.filter(m => m !== major && m !== "");
@@ -40,7 +43,10 @@ export default function FilterScreen(
             const newMajors = [...selectedMajors, major];
             setMajorsSelected(newMajors);
             }
-        }
+    }
+    const handleMajorClear = () =>{   
+        setMajorsSelected([]);
+    }
     useEffect(() => {
         const handleEscapeKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {   
@@ -65,7 +71,10 @@ export default function FilterScreen(
             >
                 <div className="w-full flex flex-col md:w-[35%] border-b md:border-b-0 md:border-r p-4 md:p-6">
                     <div className="space-y-4 bg-card/20 p-4 rounded-md overflow-auto">
-                        <h2 className="text-lg md:text-xl font-semibold">Departments</h2>
+                        <div className="flex items-center justify-between">  
+                            <h2 className="text-lg md:text-xl font-semibold">Departments</h2>
+                            <button className="cursor-pointer" onClick={handleMajorClear}>Clear Departments</button>
+                        </div>
                         <div className="space-y-1 max-h-[200px] md:max-h-none ">
                             {initialDepartments.map((department, index) => (
                                 <button
@@ -84,7 +93,10 @@ export default function FilterScreen(
                 </div>
                 <div className="w-full md:w-[65%] flex-1 p-4 md:p-6 bg-card/30 space-y-6 md:space-y-8 overflow-y-auto">
                     <div className="space-y-4 p-4">
-                        <h2 className="text-lg md:text-xl font-semibold">SBCs</h2>
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg md:text-xl font-semibold">SBCs</h2>
+                            <button className="cursor-pointer" onClick={handleSBCClear}>Clear SBCs</button>
+                        </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                         {initialSBCs.map((sbc, index) => (
                             <div className="flex flex-col" key={index}>
@@ -103,6 +115,7 @@ export default function FilterScreen(
                     </div>
                 </div>
                 </div>
+                
             </div>
         </div>
     )

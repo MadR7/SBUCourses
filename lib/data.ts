@@ -30,7 +30,6 @@ export const getCourses = cache(async (params: z.infer<typeof courseQuerySchema>
           : {}
       ]
     }, 
-    
     take: 500
   });
   
