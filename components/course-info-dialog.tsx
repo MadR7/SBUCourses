@@ -29,6 +29,13 @@ const gradeColors = [
   "#d88484", // D+
   "#d8d884"  // NC
 ];
+const gradeOrder = ["A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F", "I", "P", "S", "U", "W", "NC"];
+const gradeOrderMap = gradeOrder.reduce((acc: { [key: string]: number }, grade, index) => {
+  acc[grade] = index;
+  return acc;
+}, {});
+
+
 export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, handleClose }: CourseInfoDialogProps) {
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(false);
@@ -65,79 +72,79 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
       </div>
     </div>
   );
-  const SectionCard = ({ section }: { section: Section }) => (
+  
+  const SectionCard = ({ section }: {section: Section}) => (
     <Accordion type="single" defaultValue="section-info" collapsible className="space-y-4">
       <div className="bg-background p-4 rounded-lg mb-2">
-      <AccordionItem value="section-info" className="border-none">
-        <AccordionTrigger className="py-2">Section Information</AccordionTrigger>
-        <AccordionContent>  
-          <div className="flex justify-between items-start mb-2">
+        <AccordionItem value="section-info" className="border-none">
+          <div className="flex flex-col md:flex-row justify-between items-start">
             <div>
               <span className="font-semibold">{section.section_code}</span>
               <span className="ml-2 text-sm text-muted-foreground">{section.section_type}</span>
             </div>
-            <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded">
+            <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded mt-2 md:mt-0">
               {section.semester}
             </span>
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground mt-2">
             Instructor: {section.instructor_name || 'TBA'}
           </div>
-          <div className="text-sm text-muted-foreground">
-            Number of students: {section.total_seats?.toString()}
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="grade-info" className="border-none">
-        
-        <AccordionTrigger className="py-2">Grades</AccordionTrigger>
-        <AccordionContent>
-        <div className="flex flex-col md:flex-row">
-        <div className="w-full md:w-1/2 mb-4 md:mb-0">
-          <h3 className="text-center font-semibold mb-2">Total Number of Students: {section.total_seats?.toString()}</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={Object.entries(section.grade_count).map(([key, value]) => ({ grade: key, Count: value }))}>
-              <XAxis dataKey="grade" />
-              <YAxis />
-              <Tooltip
-                contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', border: 'none', borderRadius: '8px' }}
-                itemStyle={{ color: '#8884d8' }}
-                cursor={false}
-              />
-              <Legend />
-              <Bar dataKey="Count" fill="#8884d8" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <ResponsiveContainer width="50%" height={300}>
-            <PieChart>
-            <Pie
-              data={Object.entries(section.grade_percentage)
-              .filter(([key, value]) => value > 0) // Filter out zero values
-              .map(([key, value], index) => ({ name: key, value, fill: gradeColors[index] }))}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={100}
-              label={({ name, value }) => `${name}: ${value}%`}
-            />
-            <Tooltip
-              contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', border: 'none', borderRadius: '8px' }}
-              itemStyle={{ color: '#8884d8' }}
-            />
-            <Legend />
-            </PieChart>
-        </ResponsiveContainer>
-
-
-        </div>
-
-        </AccordionContent>
-      </AccordionItem>
+        </AccordionItem>
+        <AccordionItem value="grade-info" className="border-none">
+          <AccordionTrigger className="py-2">Grades</AccordionTrigger>
+          <AccordionContent>
+            <div className="flex flex-col md:flex-row">
+              <div className="w-full md:w-1/2 mb-4 md:mb-0">
+                <h3 className="text-center font-semibold mb-2">Number of Students: {section.total_seats?.toString()}</h3>
+                <div className="h-64 mr-10">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={Object.entries(section.grade_count)
+                                    .map(([key, value]) => ({ grade: key, Count: value }))
+                                    .sort((a, b) => gradeOrderMap[a.grade] - gradeOrderMap[b.grade])}>
+                      <XAxis dataKey="grade" />
+                      <YAxis />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', border: 'none', borderRadius: '8px' }}
+                        itemStyle={{ color: '#8884d8' }}
+                        cursor={false}
+                      />
+                      <Legend />
+                      <Bar dataKey="Count" fill="#8884d8" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div className="w-full md:w-1/2">
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={Object.entries(section.grade_percentage)
+                          .filter(([key, value]) => value > 0) // Filter out zero values
+                          .map(([key, value], index) => ({ name: key, value, fill: gradeColors[index] }))
+                          .sort((a, b) => gradeOrderMap[a.name] - gradeOrderMap[b.name])}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        label={({ name, value }) => `${name}: ${value}%`}
+                      />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', border: 'none', borderRadius: '8px' }}
+                        itemStyle={{ color: '#8884d8' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
       </div>
     </Accordion>
   );
+  
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
         if (event.key === 'Escape') {   
@@ -179,7 +186,7 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
     >
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="bg-card border-white border-2 text-card-foreground w-[75%] h-[80%] overflow-hidden flex flex-col">
+        className="bg-card border-white border-2 text-card-foreground w-[100%] h-[90%] md:w-[75%] md:h-[80%] overflow-hidden flex flex-col">
         <div className="px-6 py-4">
           <div className="text-lg flex justify-center font-bold">
             {course ? course.Course_Number : (
@@ -224,7 +231,7 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
                   </AccordionContent>
               </AccordionItem>
               <AccordionItem value="sections" className="border-none">
-                <AccordionTrigger className="py-2">Previous Sections</AccordionTrigger>
+                <AccordionTrigger className="py-2">Previous Classes</AccordionTrigger>
                 <AccordionContent>
                   {loading ? (
                     <div className="flex items-center justify-center py-4">
