@@ -28,12 +28,23 @@ export const getCourses = cache(async (params: z.infer<typeof courseQuerySchema>
             } 
           : {}
       ]
-    }, 
-    take: 500
+    },
+    orderBy:{Course_Number: 'asc'},
+    take: 500,
   });
   
   return courses;
 });
+
+
+export const getSectionsByCourse = cache(async(course_id: string)=>{
+  const sections = await prisma.sections.findMany({
+    where: {
+      course_id: course_id
+    }
+  });
+  return sections;
+})
 
 export const getDepartments = unstable_cache(
   async () => {
