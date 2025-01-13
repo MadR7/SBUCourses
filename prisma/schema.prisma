@@ -21,3 +21,16 @@ model courses {
   SBCs            String[]
   course_id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 }
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model sections {
+  section_id       BigInt  @id @default(autoincrement())
+  course_id        String  @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  section_code     String?
+  section_type     String?
+  semester         String?
+  instructor_name  String?
+  total_seats      BigInt?
+  grade_count      Json?
+  grade_percentage Json?
+}
