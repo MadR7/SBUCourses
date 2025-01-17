@@ -1,8 +1,24 @@
 import { getSectionsByCourse } from "@/lib/data";
 import { type Course } from "@/types/Course";
+import { Check, ChevronsUpDown } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { type Section } from "@/types/Section";
-import React, { memo, useEffect, useState } from "react";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./ui/accordion";
+import React, { memo, useEffect, useMemo, useState } from "react";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Loader2 } from "lucide-react";
 import { Bar, BarChart, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 interface CourseInfoDialogProps {
@@ -10,31 +26,52 @@ interface CourseInfoDialogProps {
   course: Course | null;
   handleClose: () => void;
 }
-const gradeColors = [
-  "#8884d8", // A
-  "#82ca9d", // B
-  "#ffc658", // C
-  "#ff8042", // D
-  "#d0ed57", // F
-  "#a4de6c", // I
-  "#8dd1e1", // P
-  "#d88884", // S
-  "#888888", // U
-  "#bdbdbd", // W
-  "#84d8d8", // A-
-  "#d884d8", // B+
-  "#84d884", // B-
-  "#d8d884", // C+
-  "#d8d884", // C-
-  "#d88484", // D+
-  "#d8d884"  // NC
-];
+const gradeColorMap: { [key: string]: string } = {
+  'A': '#00A878',   // Deep green: success, excellence, achievement
+  'B': '#368CBF',   // Strong blue: stability, trust, good performance
+  'C': '#FFA41B',   // Amber: average performance, caution
+  'D': '#FF4B1F',   // Orange-red: serious concern, near failing
+  'F': '#E71D36',   // Bright red: failure, danger, stop
+  'I': '#9381FF',   // Purple: incomplete, pending, mystery
+  'P': '#7D83FF',   // Blue-purple: passing, acceptable
+  'S': '#70A288',   // Sage green: satisfactory, adequate
+  'U': '#B76D68',   // Muted red: unsatisfactory but not as severe as F
+  'W': '#6C757D',   // Gray: withdrawn, neutral
+  'A-': '#2D936C',  // Slightly muted green: still excellent but slightly less intense
+  'B+': '#368CBF',  // Bright blue: competence, reliability, slightly below top tier
+  'B-': '#5C85AD',  // Muted blue: slightly decreased performance but still good
+  'C+': '#FFB627',  // Bright amber: warning, average performance with potential
+  'C-': '#FF9505',  // Dark amber: slightly below average, increased caution
+  'D+': '#FF6B35',  // Light orange-red: concern, risk of failure
+  'NC': '#495057'   // Dark gray: no credit, finality
+};
 const gradeOrder = ["A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F", "I", "P", "S", "U", "W", "NC"];
 const gradeOrderMap = gradeOrder.reduce((acc: { [key: string]: number }, grade, index) => {
   acc[grade] = index;
   return acc;
 }, {});
 
+export const useSemesters = (sections: Section[]): string[] => {
+  return useMemo(() => {
+    const uniqueSemesters = [...new Set(sections
+        .map(section => section.semester)
+        .filter((semester): semester is string => semester !== null)
+    )];
+
+    return uniqueSemesters
+  }, [sections]);
+};
+
+export const useInstructors = (sections: Section[]): string[] => {
+  return useMemo(() => {
+    
+    const uniqueInstructors = [...new Set(sections
+      .map(section => section.instructor_name)
+      .filter((instructor): instructor is string => instructor !== null)
+    )];
+    return uniqueInstructors;
+  }, [sections]);
+}
 
 export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, handleClose }: CourseInfoDialogProps) {
   const [sections, setSections] = useState<Section[]>([]);
@@ -72,7 +109,41 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
       </div>
     </div>
   );
-  
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {   
+                handleClose()
+        }
+    }
+    if (popUp) {
+        window.addEventListener("keydown", handleEscapeKey)
+        return () => {
+          window.removeEventListener("keydown", handleEscapeKey)
+        }
+    }            
+  })
+  useEffect(() => {
+    const fetchSections = async () => {
+      if (course?.course_id) {
+        setLoading(true);
+        try {
+          const response = await fetch(`/api/sections/${encodeURIComponent(course.course_id)}`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch sections');
+          }
+          const data = await response.json();
+          setSections(data);
+        } catch (error) {
+          console.error('Error fetching sections:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    fetchSections();
+  }, [course?.course_id]);
+  const semesters = useSemesters(sections);
+  const instructors = useInstructors(sections)
   const SectionCard = ({ section }: {section: Section}) => (
     <Accordion type="single" defaultValue="section-info" collapsible className="space-y-4">
       <div className="bg-background p-4 rounded-lg mb-2">
@@ -121,7 +192,7 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
                       <Pie
                         data={Object.entries(section.grade_percentage)
                           .filter(([key, value]) => value > 0) // Filter out zero values
-                          .map(([key, value], index) => ({ name: key, value, fill: gradeColors[index] }))
+                          .map(([key, value]) => ({ name: key, value, fill: gradeColorMap[key] }))
                           .sort((a, b) => gradeOrderMap[a.name] - gradeOrderMap[b.name])}
                         dataKey="value"
                         nameKey="name"
@@ -144,41 +215,107 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
       </div>
     </Accordion>
   );
-  
-  useEffect(() => {
-    const handleEscapeKey = (event: KeyboardEvent) => {
-        if (event.key === 'Escape') {   
-                handleClose()
-        }
-    }
-    if (popUp) {
-        window.addEventListener("keydown", handleEscapeKey)
-        return () => {
-          window.removeEventListener("keydown", handleEscapeKey)
-        }
-    }            
-  })
-  useEffect(() => {
-    const fetchSections = async () => {
-      if (course?.course_id) {
-        setLoading(true);
-        try {
-          const response = await fetch(`/api/sections/${encodeURIComponent(course.course_id)}`);
-          if (!response.ok) {
-            throw new Error('Failed to fetch sections');
-          }
-          const data = await response.json();
-          setSections(data);
-        } catch (error) {
-          console.error('Error fetching sections:', error);
-        } finally {
-          setLoading(false);
-        }
+  const PrevClasses = ({ sections, semesters}: { sections: Section[], semesters: string[], instructors: string[]}) => {
+    const [openSem, setOpenSem] = React.useState(false)
+    const [valueSem, setValueSem] = React.useState("")
+    const [openInstructor, setOpenInstructor] = React.useState(false)
+    const [valueInstructor, setValueInstructor] = React.useState("")
+    const filteredSections = useMemo(() => {
+      if (!valueSem) return [];
+      if (!valueInstructor){
+        return sections.filter((section) => section.semester === valueSem);
+      }else{
+        return sections.filter((section) => section.semester === valueSem && section.instructor_name === valueInstructor);
       }
-    };
-    fetchSections();
-  }, [course?.course_id]);
-  
+      
+    }, [sections, valueSem, valueInstructor]);
+    return (
+      <div className="flex flex-col space-y-2">
+        <div className="flex flex-col md:flex-row ">
+          <Popover open={openSem} onOpenChange={setOpenSem}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openSem}
+                className="flex justify-between"
+              >
+                {valueSem
+                  ? semesters.find((semester) => semester === valueSem)
+                  : "Select semester..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+              <Command>
+                <CommandInput placeholder="Search semester..." />
+                <CommandList>
+                  <CommandEmpty>No semesters found.</CommandEmpty>
+                  <CommandGroup>
+                    {semesters.map((semester) => (
+                      <CommandItem
+                        key={semester}
+                        value={semester}
+                        onSelect={(currentValue) => {
+                          setValueSem(currentValue === valueSem ? "" : currentValue)
+                          setOpenSem(false)
+                        }}
+                      >
+                        {semester}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <Popover open={openInstructor} onOpenChange={setOpenInstructor}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={openInstructor}
+              className="flex justify-between"
+            >
+              {valueInstructor
+                ? instructors.find((instructor) => instructor === valueInstructor)
+                : "Select instructor..."}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="flex p-0">
+            <Command>
+              <CommandInput placeholder="Search instructor..." />
+              <CommandList>
+                <CommandEmpty>No instructors found.</CommandEmpty>
+                <CommandGroup>
+                  {instructors.map((instructor) => (
+                    <CommandItem
+                      key={instructor}
+                      value={instructor}
+                      onSelect={(currentValue) => {
+                        setValueInstructor(currentValue === valueInstructor ? "" : currentValue)
+                        setOpenInstructor(false)
+                      }}
+                    >
+                      {instructor}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        </div>
+        <div>
+          {
+            filteredSections.map((section) => (
+              <SectionCard key={section.section_id} section={section} />
+          ))}
+        </div>
+      </div>
+    );
+  };
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center  backdrop-blur-sm"
@@ -231,7 +368,7 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
                   </AccordionContent>
               </AccordionItem>
               <AccordionItem value="sections" className="border-none">
-                <AccordionTrigger className="py-2">Previous Classes</AccordionTrigger>
+                <AccordionTrigger className="py-2">Past Classes</AccordionTrigger>
                 <AccordionContent>
                   {loading ? (
                     <div className="flex items-center justify-center py-4">
@@ -239,9 +376,9 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
                     </div>
                   ) : sections.length > 0 ? (
                     <div className="space-y-2">
-                      {sections.map((section) => (
-                        <SectionCard key={section.section_id.toString()} section={section} />
-                      ))}
+                      
+                      <PrevClasses sections={sections} semesters={semesters} instructors={instructors}/>
+                      
                     </div>
                   ) : (
                     <div className="text-center py-4 text-muted-foreground">
