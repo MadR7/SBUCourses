@@ -175,7 +175,7 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
                       <XAxis dataKey="grade" />
                       <YAxis />
                       <Tooltip
-                        contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', border: 'none', borderRadius: '8px' }}
+                        contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', color:'rgba(0, 0, 0, 1)', border: 'none', borderRadius: '8px' }}
                         itemStyle={{ color: '#8884d8' }}
                         cursor={false}
                       />
