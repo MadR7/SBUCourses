@@ -66,6 +66,7 @@
     "tailwindcss": "^3.3.3",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.9",
+    "virtua": "^0.39.3",
     "zod": "^3.23.8",
     "zustand": "^5.0.3"
   },
