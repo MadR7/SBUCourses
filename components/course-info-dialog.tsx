@@ -142,6 +142,17 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
     };
     fetchSections();
   }, [course?.course_id]);
+  useEffect(() => {
+    // When dialog opens, disable scrolling
+    if (popUp) {
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // Cleanup: re-enable scrolling when dialog closes
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [popUp]);
   const semesters = useSemesters(sections);
   const instructors = useInstructors(sections)
   const SectionCard = ({ section }: {section: Section}) => (
@@ -318,7 +329,7 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
   };
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center  backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
       onClick={handleClose}
     >
       <div 
