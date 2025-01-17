@@ -342,19 +342,30 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
                           <h3 className="font-semibold">{course.Title}</h3>
                         </div>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="bg-background p-3 rounded-lg">
+                        <div className="flex flex-col md:flex-row gap-4">
+                          <div className="flex flex-row space-x-4">
+                            <div className="bg-background p-3 rounded-lg">
                             <p className="text-sm text-muted-foreground">SBCs</p>
-                            <p className="text-lg font-semibold text-green-600">{course.SBCs.join()}</p>
-                          </div>
-                          <div className="bg-background p-3 rounded-lg">
-                            <p className="text-sm text-muted-foreground">Prerequisites:</p>
+                            <p className="text-md font-semibold text-green-600">{course.SBCs.join()}</p>
+                            </div>
+                            
+                            <div className="bg-background p-3 rounded-lg">
+                            <p className="text-sm text-muted-foreground">Credits:</p>
                             {course.Prerequisites ? 
-                              <p className="text-md font-semibold text-blue-600">{course.Prerequisites}</p> : 
+                              <p className="text-md font-semibold text-blue-600">{course.Credits?.toString()}</p> : 
                               <p className="text-md font-semibold text-blue-600">None</p>
                             }
+                            </div>
+                          </div>
+                          <div className="bg-background p-3 rounded-lg flex-grow">
+                          <p className="text-sm text-muted-foreground">Prerequisites:</p>
+                          {course.Prerequisites ? 
+                            <p className="text-md font-semibold text-blue-600">{course.Prerequisites}</p> : 
+                            <p className="text-md font-semibold text-blue-600">None</p>
+                          }
                           </div>
                         </div>
+                        
 
                         <div className="bg-background p-3 rounded-lg">
                           <p className="text-sm text-muted-foreground">Department</p>
