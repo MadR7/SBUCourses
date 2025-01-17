@@ -238,7 +238,7 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
                 variant="outline"
                 role="combobox"
                 aria-expanded={openSem}
-                className="flex justify-between"
+                className="flex md:mr-2 justify-between"
               >
                 {valueSem
                   ? semesters.find((semester) => semester === valueSem)
