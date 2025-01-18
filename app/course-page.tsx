@@ -8,7 +8,6 @@ import { type Course } from '@/types/Course'
 import { ChevronDown, ChevronUp, Search, SlidersHorizontal } from 'lucide-react'
 import { CourseInfoDialog } from '@/components/course-info-dialog'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
 
 interface CourseSearchProps {
     initialCourses: Course[]

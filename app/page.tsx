@@ -25,7 +25,10 @@ export default async function Home({
     return (
         <div className="min-h-screen bg-background text-foreground">
             <header className="px-6 py-4 flex items-center justify-between border-b border-muted">
-                <Link href="/">
+                <Link 
+                    href="/"
+                    prefetch={false}
+                >
                     <div className="flex items-center gap-3 cursor-pointer">
                         <h1 className="text-[rgb(var(--sbu-red))] text-2xl font-bold">
                             SBUScheduler<span className="text-foreground">.</span>
@@ -42,6 +45,16 @@ export default async function Home({
                     <CoursePage initialCourses={courses} initialDepartments={departments} initialSBCs={sbcs} />
                 </Suspense>
             </main>
+            <footer className="px-6 py-4 border-t border-muted">
+                <div className="flex flex-col items-center justify-center">
+                <div>
+                    <div className="text-sm">
+                        <span>Made with ❤️ by </span>
+                        <a className="underline" href="https://www.github.com/MadR7" target="_blank" rel="noopener noreferrer">Madhav Rapelli</a>
+                    </div>
+                </div>
+                </div>
+            </footer>
         </div>
         
     )
