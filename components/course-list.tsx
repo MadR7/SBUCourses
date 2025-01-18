@@ -64,7 +64,7 @@ const CourseItem = memo(
 
 export const CourseList = memo(function CourseList({ courses, isSelected, onToggleCourse, onInfoClick }: CourseListProps) {
   return (
-    <VList style={{height: "100vh"}}>
+    <VList style={{height: "90vh"}}>
       <div className="space-y-2">
         {courses.map((course) => (
           <CourseItem 
