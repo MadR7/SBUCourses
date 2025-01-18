@@ -4,7 +4,7 @@ import { Star, Info } from "lucide-react";
 import { type Course } from "@/types/Course";
 import { memo } from "react";
 import { useCallback } from "react";
-
+import {VList} from "virtua"
 interface CourseListProps {
   courses: Course[];
   isSelected: boolean;
@@ -64,16 +64,18 @@ const CourseItem = memo(
 
 export const CourseList = memo(function CourseList({ courses, isSelected, onToggleCourse, onInfoClick }: CourseListProps) {
   return (
-    <div className="space-y-2">
-      {courses.map((course) => (
-        <CourseItem 
-          key={course.course_id}
-          course={course}
-          isSelected={isSelected}
-          onToggle={onToggleCourse}
-          onInfo={onInfoClick}
-        />
-      ))}
-    </div>
+    <VList style={{height: "100vh"}}>
+      <div className="space-y-2">
+        {courses.map((course) => (
+          <CourseItem 
+            key={course.course_id}
+            course={course}
+            isSelected={isSelected}
+            onToggle={onToggleCourse}
+            onInfo={onInfoClick}
+          />
+        ))}
+      </div>
+    </VList>
   );
 })
