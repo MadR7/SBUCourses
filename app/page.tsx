@@ -17,6 +17,7 @@ export default async function Home({
     const sbcsSelected = (searchParams.sbcs?.split(",") || []).filter((sbc) => sbc !== null) as string[];
     const searchQuery = searchParams.search || "";
 
+    
     const [departments, sbcs, courses] = await Promise.all([
         getDepartments(),
         getSBCs(),
@@ -26,8 +27,9 @@ export default async function Home({
         <div className="min-h-screen bg-background text-foreground">
             <header className="px-6 py-4 flex items-center justify-between border-b border-muted">
                 <Link 
-                    href="/"
-                    prefetch={false}
+                    href={{
+                        pathname: '/',
+                    }}
                 >
                     <div className="flex items-center gap-3 cursor-pointer">
                         <h1 className="text-[rgb(var(--sbu-red))] text-2xl font-bold">

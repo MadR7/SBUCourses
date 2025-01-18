@@ -96,10 +96,17 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
         },
         []
     );
-
     useEffect(() => {
         updateFilters(currentMajors, currentSBCs, debouncedSearchInput);
     }, [debouncedSearchInput, currentMajors, currentSBCs, updateFilters]);
+    
+    useEffect(() => {
+        if (!searchParams.get("search")) {
+            setSearchInput("");
+            updateFilters(currentMajors, currentSBCs, "");
+        }
+    }, [searchParams, currentMajors, currentSBCs, updateFilters]);
+    
 
     const availableCourses = useMemo(
         () =>
