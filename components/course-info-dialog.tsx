@@ -163,6 +163,7 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
             <div>
               <span className="font-semibold">{section.section_code}</span>
               <span className="ml-2 text-sm text-muted-foreground">{section.section_type}</span>
+              {section.section_code && section.section_code.includes('90') && <span className="italic text-xs"> (SUNY KOREA)</span>}
             </div>
             <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded mt-2 md:mt-0">
               {section.semester}
