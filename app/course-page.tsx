@@ -24,7 +24,7 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
     const currentSearch = searchParams.get("search") || "";
 
     const [searchInput, setSearchInput] = useState(currentSearch);
-    const debouncedSearchInput = useDebounce(searchInput, 250);
+    const debouncedSearchInput = useDebounce(searchInput, 250).trim();
 
     const [selectedCourses, setSelectedCourses] = useState<Course[]>([]);
     const [selectedCourseInfo, setSelectedCourseInfo] = useState<Course | null>(null);
@@ -96,10 +96,17 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
         },
         []
     );
-
     useEffect(() => {
         updateFilters(currentMajors, currentSBCs, debouncedSearchInput);
     }, [debouncedSearchInput, currentMajors, currentSBCs, updateFilters]);
+    
+    useEffect(() => {
+        if (!searchParams.get("search")) {
+            setSearchInput("");
+            updateFilters(currentMajors, currentSBCs, "");
+        }
+    }, [searchParams, currentMajors, currentSBCs, updateFilters]);
+    
 
     const availableCourses = useMemo(
         () =>
