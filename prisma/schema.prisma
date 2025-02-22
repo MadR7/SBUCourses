@@ -35,3 +35,17 @@ model sections {
   grade_count      Json?
   grade_percentage Json?
 }
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model professors {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String
+  rmp_link          String?
+  rating_1_count    Int      @default(0)
+  rating_2_count    Int      @default(0)
+  rating_3_count    Int      @default(0)
+  rating_4_count    Int      @default(0)
+  rating_5_count    Int      @default(0)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+}
