@@ -56,3 +56,11 @@ model reddit_links {
   course_number String  @id(map: "course_links_pkey")
   links         String?
 }
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model syllabi_links {
+  course_number String  @id
+  semester      String?
+  professor     String?
+  syllabus_link String?
+}
