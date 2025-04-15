@@ -61,7 +61,8 @@ model reddit_links {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model syllabi_links {
-  course_number String  @id
+  row_num       BigInt  @id
+  course_number String?
   semester      String?
   professor     String?
   syllabus_link String?
