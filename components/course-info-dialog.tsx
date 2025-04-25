@@ -2,7 +2,7 @@ import React, { memo, useEffect, useMemo, useState, useRef, useCallback } from "
 import { type Course } from "@/types/Course";
 import { type Section } from "@/types/Section";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { Loader2 } from "lucide-react";
+import { Loader2, ExternalLink, AlertCircle } from "lucide-react";
 
 // Import extracted components, hooks, and types
 import LoadingSkeleton from './course-info/loading-skeleton';
@@ -13,6 +13,13 @@ import { Bar, BarChart, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAx
 import { type professors } from "@prisma/client";
 import { Cell } from 'recharts';
 import SyllabiCard from './syllabi-card';
+
+// Define the structure expected inside post_data JSON string
+interface RedditLink {
+    url: string;
+    title?: string; // Optional title
+    // Add other fields if they exist in your JSON data
+}
 
 interface CourseInfoDialogProps {
   popUp: boolean;
@@ -26,6 +33,11 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
   const [activeAccordionItems, setActiveAccordionItems] = useState<string[]>(["course-info"]);
   const professorRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [openProfessor, setOpenProfessor] = useState<string | null>(null);
+
+  // State for Reddit Links
+  const [redditLinks, setRedditLinks] = useState<RedditLink[]>([]);
+  const [redditLoading, setRedditLoading] = useState(false);
+  const [redditError, setRedditError] = useState<string | null>(null);
 
   // --- Event Handlers ---
   const handleInstructorClick = useCallback((instructorName: string) => {
@@ -97,7 +109,56 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
       }
     };
     fetchSections();
-  }, [course?.course_id]);
+
+    // Fetch Reddit Links
+    const fetchRedditLinks = async () => {
+      if (course?.Course_Number) { // Use Course_Number here
+        setRedditLoading(true);
+        setRedditError(null);
+        setRedditLinks([]); // Clear previous links
+        try {
+          const response = await fetch(`/api/reddit-links/${encodeURIComponent(course.Course_Number)}`);
+          const data = await response.json();
+
+          if (response.status === 404) {
+            // No links found, not an error
+            setRedditLinks([]);
+          } else if (!response.ok) {
+            throw new Error(data.message || data.error || 'Failed to fetch Reddit links');
+          } else if (data.post_data) {
+            // Parse the JSON string from post_data
+            try {
+              const parsedLinks = JSON.parse(data.post_data);
+              // Basic validation: check if it's an array
+              if (Array.isArray(parsedLinks)) {
+                 setRedditLinks(parsedLinks as RedditLink[]);
+              } else {
+                 console.error('Parsed Reddit post_data is not an array:', parsedLinks);
+                 setRedditError('Failed to parse Reddit link data format.');
+                 setRedditLinks([]);
+              }
+            } catch (parseError) {
+              console.error('Error parsing Reddit post_data JSON:', parseError);
+              setRedditError('Failed to parse Reddit link data.');
+              setRedditLinks([]);
+            }
+          } else {
+             // post_data was null/empty even with a 200 OK - treat as no links
+             setRedditLinks([]);
+          }
+        } catch (error: any) {
+          console.error('Error fetching Reddit links:', error);
+          setRedditError(error.message || 'Could not load Reddit links.');
+          setRedditLinks([]);
+        } finally {
+          setRedditLoading(false);
+        }
+      }
+    };
+
+    fetchRedditLinks();
+
+  }, [course?.course_id, course?.Course_Number]); // Add Course_Number dependency
 
   // --- Hooks for derived data ---
   const semesters = useSemesters(sections);
@@ -218,6 +279,44 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
                      <div className="text-center py-6 text-muted-foreground">
                        No past professor data available for this course.
                      </div>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+              {/* Reddit Links Section */}
+              <AccordionItem value="reddit-links" className="border-none">
+                <AccordionTrigger className="text-base font-semibold py-2 hover:no-underline data-[state=open]:text-primary">Reddit Links</AccordionTrigger>
+                <AccordionContent>
+                  {redditLoading ? (
+                    <div className="flex items-center justify-center py-6">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    </div>
+                  ) : redditError ? (
+                    <div className="flex items-center justify-center py-6 text-destructive">
+                      <AlertCircle className="w-5 h-5 mr-2" />
+                      <span>{redditError}</span>
+                      {/* Optional: Add retry button here */}
+                    </div>
+                  ) : redditLinks.length > 0 ? (
+                    <div className="space-y-2 pt-2">
+                      {redditLinks.map((link, index) => (
+                        <a
+                          key={index} // Use index if links don't have unique IDs
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center p-3 bg-background rounded-lg border hover:bg-muted/50 transition-colors group"
+                        >
+                          <span className="truncate flex-1 mr-2 text-sm font-medium text-primary group-hover:underline">
+                             {link.title || link.url} {/* Display title or fallback to URL */}
+                          </span>
+                          <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-muted-foreground">
+                      No Reddit links found for this course.
+                    </div>
                   )}
                 </AccordionContent>
               </AccordionItem>
