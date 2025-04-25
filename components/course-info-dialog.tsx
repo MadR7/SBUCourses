@@ -23,6 +23,7 @@ import { Loader2 } from "lucide-react";
 import { Bar, BarChart, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { type professors } from "@prisma/client";
 import { Cell } from 'recharts';
+import SyllabiCard from './syllabi-card';
 
 interface CourseInfoDialogProps {
   popUp: boolean;
@@ -562,6 +563,12 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
                       <ProfessorCard key={instructor} instructor={instructor} />
                     ))}
                   </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="syllabi" className="border-none">
+                <AccordionTrigger className="py-2">Past Syllabi</AccordionTrigger>
+                <AccordionContent>
+                  <SyllabiCard courseNumber={course?.Course_Number} />
+                </AccordionContent>
               </AccordionItem>
             </Accordion>
           ) : (
