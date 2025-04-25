@@ -6,6 +6,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Check, ChevronsUpDown } from "lucide-react";
 import SectionCard from './section-card'; // Import the extracted component
 import { cn } from "@/lib/utils";
+
+/**
+ * Props for the PrevClasses component.
+ * @property sections - Array of all past Section objects for the course.
+ * @property semesters - Array of unique semester strings derived from the sections.
+ * @property instructors - Array of unique instructor names derived from the sections.
+ * @property onInstructorClick - Callback function invoked when an instructor's name is clicked within a SectionCard.
+ */
 interface PrevClassesProps {
   sections: Section[];
   semesters: string[];
@@ -13,6 +21,18 @@ interface PrevClassesProps {
   onInstructorClick: (instructor: string) => void;
 }
 
+/**
+ * A component that displays a filterable list of past sections (classes) for a course.
+ * 
+ * Provides dropdown filters for semesters and instructors.
+ * Renders the filtered list of sections using the `SectionCard` component.
+ * 
+ * @param sections - The full list of past sections for the course.
+ * @param semesters - Unique semesters available for filtering.
+ * @param instructors - Unique instructors available for filtering.
+ * @param onInstructorClick - Callback function passed to SectionCard for handling instructor clicks.
+ * @returns JSX element representing the past classes section with filters and section list.
+ */
 export const PrevClasses = ({ sections, semesters, instructors, onInstructorClick }: PrevClassesProps) => {
   const [openSem, setOpenSem] = useState(false);
   const [valueSem, setValueSem] = useState("");

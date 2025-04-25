@@ -4,6 +4,15 @@ import React from "react"
 import {useSearchParams} from "next/navigation"
 import { useEffect } from "react"
 
+/**
+ * Props for the FilterScreen component.
+ * @property filterScreen - Boolean controlling the visibility of the filter modal.
+ * @property setFilterScreen - Function to update the visibility state (used to close the modal).
+ * @property initialDepartments - Array of all available department codes for selection.
+ * @property initialSBCs - Array of all available SBC codes for selection.
+ * @property setMajorsSelected - Callback function invoked when the selected departments change.
+ * @property setSBCSelected - Callback function invoked when the selected SBCs change.
+ */
 interface FilterScreenProps {
     filterScreen: boolean;
     setFilterScreen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -13,6 +22,23 @@ interface FilterScreenProps {
     setSBCSelected: (sbcs: string[]) => void;
 }
 
+/**
+ * A client-side modal component for selecting course filters (Departments and SBCs).
+ * 
+ * Displays lists of available departments and SBCs, allowing users to toggle selections.
+ * Reads the current selections from URL search parameters to highlight active filters.
+ * Uses callback props (`setMajorsSelected`, `setSBCSelected`) to immediately notify the parent 
+ * component ([CoursePage]) of filter changes.
+ * Provides methods to clear selections and close the modal (backdrop click or Escape key).
+ * 
+ * @param filterScreen - Controls modal visibility.
+ * @param setFilterScreen - Function to close the modal.
+ * @param initialDepartments - List of all department options.
+ * @param initialSBCs - List of all SBC options.
+ * @param setMajorsSelected - Callback for department selection changes.
+ * @param setSBCSelected - Callback for SBC selection changes.
+ * @returns JSX element representing the filter modal, or null if `filterScreen` is false.
+ */
 export default function FilterScreen(
     {filterScreen, setFilterScreen, initialDepartments, initialSBCs, setMajorsSelected, setSBCSelected}: FilterScreenProps
 ){

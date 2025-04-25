@@ -4,9 +4,25 @@ import { CoursePage } from "./course-page";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-
+/**
+ * Revalidation interval for this page (in seconds).
+ * Configures Incremental Static Regeneration (ISR) for this route.
+ * The page will be regenerated at most once every 2,592,000 seconds (30 days).
+ */
 export const revalidate = 2592000;
 
+/**
+ * The main landing page component for the SBUScheduler application.
+ * This is an asynchronous Server Component responsible for fetching initial data 
+ * based on URL search parameters and rendering the core page layout, 
+ * including the header, footer, and the main course display/filtering area (`CoursePage`).
+ * 
+ * @param searchParams - URL query parameters passed by Next.js.
+ *   - `majors` (string | undefined): Comma-separated list of department codes for initial filtering.
+ *   - `sbcs` (string | undefined): Comma-separated list of SBC codes for initial filtering.
+ *   - `search` (string | undefined): Initial search query string.
+ * @returns A promise resolving to the JSX element representing the home page.
+ */
 export default async function Home({
     searchParams,
 }:{

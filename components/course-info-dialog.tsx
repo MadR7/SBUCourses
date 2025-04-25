@@ -11,12 +11,31 @@ import ProfessorCard from './course-info/professor-card';
 import { useSemesters, useInstructors } from '@/lib/hooks/use-course-info-hooks';
 import { type professors } from '@prisma/client'; // Keep this type import if needed directly here
 
+/**
+ * Props for the CourseInfoDialog component.
+ * @property popUp - Boolean state controlling the visibility of the dialog.
+ * @property course - The Course object containing details to display, or null if no course is selected.
+ * @property handleClose - Callback function to close the dialog.
+ */
 interface CourseInfoDialogProps {
   popUp: boolean;
   course: Course | null;
   handleClose: () => void;
 }
 
+/**
+ * A memoized client-side modal dialog component that displays detailed information about a selected course.
+ * 
+ * Fetches and displays past section data, including semesters offered and professors who taught the course.
+ * Organizes information into two columns: Course details/Past Classes and Past Professors.
+ * Provides interactivity like closing the modal, scrolling to professor details upon clicking an instructor name,
+ * and expanding professor cards.
+ * 
+ * @param popUp - Controls the visibility of the dialog.
+ * @param course - The course data to display.
+ * @param handleClose - Function to call when the dialog should be closed.
+ * @returns JSX element representing the course information dialog, or null if `popUp` is false.
+ */
 export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, handleClose }: CourseInfoDialogProps) {
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(false);

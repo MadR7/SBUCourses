@@ -5,7 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from "recharts";
 
-// Props type
+/**
+ * Props for the ProfessorCard component.
+ * @property instructor - The name of the instructor.
+ * @property isOpen - Boolean indicating if the accordion item is currently open.
+ * @property onToggle - Callback function to toggle the accordion's open state.
+ * @property professorRef - Callback ref function to attach a ref to the component's root div for scrolling.
+ * @property professorId - Unique string ID for the component's root div, used for scrolling.
+ */
 interface ProfessorCardProps {
   instructor: string;
   isOpen: boolean;
@@ -14,7 +21,16 @@ interface ProfessorCardProps {
   professorId: string; // Prop for the ID
 }
 
-// Custom Tooltip for Rating Chart
+/**
+ * Custom Tooltip component for the professor rating distribution BarChart.
+ * Displays the rating label (e.g., 'Awesome 5'), the count, and the percentage of total ratings.
+ * 
+ * @param active - Boolean indicating if the tooltip is active.
+ * @param payload - Array containing the data payload for the hovered bar.
+ * @param label - The label of the hovered bar (rating category name).
+ * @param totalRatings - The total number of ratings for percentage calculation.
+ * @returns JSX element for the tooltip or null if not active.
+ */
 const CustomTooltip = ({ active, payload, label, totalRatings }: any) => {
   if (active && payload && payload.length) {
     const percentage = totalRatings > 0 ? ((payload[0].value / totalRatings) * 100).toFixed(1) : 0;
@@ -29,6 +45,22 @@ const CustomTooltip = ({ active, payload, label, totalRatings }: any) => {
   return null;
 };
 
+/**
+ * A memoized component that displays detailed information about a professor in a collapsible card.
+ * 
+ * Fetches professor data (including RMP details if available) from the backend API.
+ * Displays key metrics like average rating, difficulty, and 'would take again' percentage.
+ * Visualizes the rating distribution using a horizontal bar chart.
+ * Controlled externally via `isOpen` and `onToggle` props for accordion behavior.
+ * Provides a ref and ID for potential scrolling integration.
+ * 
+ * @param instructor - The name of the professor.
+ * @param isOpen - Controls whether the accordion is open.
+ * @param onToggle - Callback to change the accordion state.
+ * @param professorRef - Callback ref for the component's root element.
+ * @param professorId - ID for the component's root element.
+ * @returns JSX element representing the professor card.
+ */
 export const ProfessorCard = memo(function ProfessorCard({ instructor, isOpen, onToggle, professorRef, professorId }: ProfessorCardProps) {
   const [professorData, setProfessorData] = useState<professors | null>(null);
   const [loadingProf, setLoadingProf] = useState(false);

@@ -9,12 +9,32 @@ import { ChevronDown, ChevronUp, Search, SlidersHorizontal } from 'lucide-react'
 import { CourseInfoDialog } from '@/components/course-info-dialog'
 import { useRouter, useSearchParams } from 'next/navigation'
 
+/**
+ * Props for the CoursePage component.
+ * @property initialCourses - The initial list of courses fetched by the parent server component.
+ * @property initialDepartments - The list of all available department codes.
+ * @property initialSBCs - The list of all available SBC codes.
+ */
 interface CourseSearchProps {
     initialCourses: Course[]
     initialDepartments: (string | null)[]
     initialSBCs: string[]
 }
 
+/**
+ * Client-side component responsible for displaying courses and handling user interactions 
+ * like searching, filtering, and viewing course details.
+ * 
+ * It receives initial data from its parent server component (`app/page.tsx`) and manages 
+ * filtering state by synchronizing it with URL search parameters. Updates to filters 
+ * trigger a URL change, causing the parent component to refetch data and pass updated 
+ * `initialCourses` back down.
+ * 
+ * @param initialCourses - The initial list of courses to display, potentially pre-filtered by the server based on initial URL params.
+ * @param initialDepartments - List of all available departments for the filter UI.
+ * @param initialSBCs - List of all available SBCs for the filter UI.
+ * @returns JSX element containing the interactive course search and display interface.
+ */
 export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: CourseSearchProps) {
     const router = useRouter();
     const searchParams = useSearchParams();

@@ -1,5 +1,14 @@
 import React from 'react';
 
+/**
+ * A stateless functional component that renders a loading skeleton UI.
+ * 
+ * This component displays a placeholder structure with animated pulsing elements,
+ * visually indicating that the course information content is currently loading
+ * within the CourseInfoDialog.
+ * 
+ * @returns JSX element representing the loading skeleton UI.
+ */
 export const LoadingSkeleton = () => (
     <div className="space-y-4">
       <div>

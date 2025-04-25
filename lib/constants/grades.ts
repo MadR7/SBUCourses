@@ -1,3 +1,8 @@
+/**
+ * A mapping from letter grades to specific hex color codes.
+ * Used for consistently coloring grade representations, particularly in charts.
+ * The comments indicate the semantic meaning associated with each color choice.
+ */
 export const gradeColorMap: { [key: string]: string } = {
   'A': '#00A878',   // Deep green: success, excellence, achievement
   'B': '#368CBF',   // Strong blue: stability, trust, good performance
@@ -18,8 +23,16 @@ export const gradeColorMap: { [key: string]: string } = {
   'NC': '#495057'   // Dark gray: no credit, finality
 };
 
+/**
+ * An array defining the canonical sort order for letter grades.
+ * Used to ensure grades are displayed and sorted logically (e.g., in charts).
+ */
 export const gradeOrder = ["A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F", "I", "P", "S", "U", "W", "NC"];
 
+/**
+ * A mapping derived from `gradeOrder`, associating each letter grade with its numerical sort index.
+ * This provides an efficient lookup for sorting grades according to the `gradeOrder` array.
+ */
 export const gradeOrderMap = gradeOrder.reduce((acc: { [key: string]: number }, grade, index) => {
   acc[grade] = index;
   return acc;

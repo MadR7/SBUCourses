@@ -2,6 +2,21 @@
 import { NextResponse } from 'next/server';
 import { getProfessorByName } from '@/lib/data'; // Import the existing data fetching function
 
+/**
+ * API route handler for GET requests to `/api/professors/[name]`.
+ * Fetches a single professor's details using the name provided in the URL path.
+ * 
+ * Dynamic Route Parameter:
+ * - `name` (string): The URL-encoded full name of the professor.
+ * 
+ * @param request - The incoming Next.js request object (unused in this handler).
+ * @param params - An object containing the dynamic route parameters. Expected: { name: string }.
+ * @returns A NextResponse object containing:
+ *   - A JSON object of the professor on success.
+ *   - A JSON error object with status 400 if the name is missing.
+ *   - A JSON error object with status 404 if the professor is not found.
+ *   - A JSON error object with status 500 on internal server error.
+ */
 export async function GET(
   request: Request,
   { params }: { params: { name: string } }
