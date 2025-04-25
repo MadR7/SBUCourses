@@ -38,8 +38,19 @@ export async function GET(
       return NextResponse.json({ message: 'No syllabi found for this course' }, { status: 404 });
     }
 
-    return NextResponse.json(syllabi);
-  } catch (error) {
+    // Convert BigInt fields to strings before sending JSON response
+    const serializableSyllabi = syllabi.map(syllabus => ({
+      ...syllabus,
+      row_num: syllabus.row_num.toString(), // Convert BigInt to string
+    }));
+
+    return NextResponse.json(serializableSyllabi);
+  } catch (error: any) { // Added :any to catch error type issue
+    // Check if the error is the BigInt serialization error, log specifically if needed
+    if (error instanceof TypeError && error.message.includes('Do not know how to serialize a BigInt')) {
+        console.error('Caught BigInt serialization error during JSON response preparation:', error);
+        return NextResponse.json({ error: 'Failed to process data for response.' }, { status: 500 });
+    }
     console.error('Error fetching syllabi:', error);
     return NextResponse.json({ error: 'Failed to fetch syllabi' }, { status: 500 });
   } finally {
