@@ -21,6 +21,9 @@ import React, { memo, useEffect, useMemo, useState } from "react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Loader2 } from "lucide-react";
 import { Bar, BarChart, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { type professors } from "@prisma/client";
+import { Cell } from 'recharts';
+
 interface CourseInfoDialogProps {
   popUp: boolean;
   course: Course | null;
@@ -227,6 +230,148 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
       </div>
     </Accordion>
   );
+  const ProfessorCard = ({ instructor }: { instructor: string }) => {
+    const [professorData, setProfessorData] = useState<professors | null>(null);
+    const [loadingProf, setLoadingProf] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+      const fetchProfessorDataFromApi = async () => {
+        if (!instructor || instructor === 'TBA') {
+          setProfessorData(null);
+          setError("Instructor name not available.");
+          setLoadingProf(false); // Stop loading if no instructor
+          return;
+        }
+        setLoadingProf(true);
+        setError(null);
+        try {
+          // Fetch data from the API route
+          const response = await fetch(`/api/professors/${encodeURIComponent(instructor)}`);
+
+          if (!response.ok) {
+            // Handle HTTP errors (like 404 Not Found, 500 Internal Server Error)
+            const errorData = await response.json().catch(() => ({})); // Try to parse error, default to empty object
+            setError(errorData.error || `Error: ${response.statusText} (${response.status})`);
+            setProfessorData(null);
+          } else {
+            const data = await response.json();
+            setProfessorData(data);
+          }
+        } catch (err) {
+          console.error("Failed to fetch professor data:", err);
+          setError("Failed to load professor data. Check network connection.");
+          setProfessorData(null);
+        } finally {
+          setLoadingProf(false);
+        }
+      };
+
+      fetchProfessorDataFromApi();
+    }, [instructor]);
+
+    const ratingData = useMemo(() => {
+      if (!professorData) return [];
+      return [
+        { name: 'Awesome 5', count: professorData.rating_5_count ?? 0, color: '#3b82f6' }, // Blue
+        { name: 'Great 4', count: professorData.rating_4_count ?? 0, color: '#3b82f6' }, // Blue
+        { name: 'Good 3', count: professorData.rating_3_count ?? 0, color: '#3b82f6' }, // Blue
+        { name: 'OK 2', count: professorData.rating_2_count ?? 0, color: '#3b82f6' }, // Blue
+        { name: 'Awful 1', count: professorData.rating_1_count ?? 0, color: '#3b82f6' }, // Blue
+      ];
+    }, [professorData]);
+
+    const totalRatings = useMemo(() => {
+      return ratingData.reduce((sum, item) => sum + item.count, 0);
+    }, [ratingData]);
+
+    const CustomTooltip = ({ active, payload, label }: any) => {
+      if (active && payload && payload.length) {
+        const percentage = totalRatings > 0 ? ((payload[0].value / totalRatings) * 100).toFixed(1) : 0;
+        return (
+          <div className="bg-background p-2 border rounded shadow-lg">
+            <p className="font-semibold">{`${label}`}</p>
+            <p className="text-sm text-muted-foreground">{`Count: ${payload[0].value}`}</p>
+            <p className="text-sm text-muted-foreground">{`Percentage: ${percentage}%`}</p>
+          </div>
+        );
+      }
+      return null;
+    };
+
+
+    return (
+      <Accordion type="single" collapsible className="w-full mb-2" >
+        <AccordionItem value="professor-info" className="border rounded-lg overflow-hidden">
+            <AccordionTrigger className="bg-background px-4 py-3 hover:bg-muted/50 data-[state=open]:bg-muted/50">
+              <div className="flex justify-between items-center w-full">
+                 <p className="font-semibold">{instructor}</p>
+                 {loadingProf && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground ml-2" />}
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="bg-background p-4">
+              {error && <p className="text-sm text-destructive text-center py-4">{error}</p>}
+              {professorData && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="bg-muted/30 p-3 rounded-lg">
+                      <p className="text-xs text-muted-foreground">Avg Rating</p>
+                      <p className="text-lg font-bold text-primary">
+                        {professorData.avg_rating?.toFixed(1) ?? 'N/A'}
+                        <span className="text-xs font-normal"> / 5.0</span>
+                      </p>
+                    </div>
+                     <div className="bg-muted/30 p-3 rounded-lg">
+                       <p className="text-xs text-muted-foreground">Difficulty</p>
+                       <p className="text-lg font-bold text-primary">
+                         {professorData.difficulty_avg?.toFixed(1) ?? 'N/A'}
+                         <span className="text-xs font-normal"> / 5.0</span>
+                      </p>
+                     </div>
+                    <div className="bg-muted/30 p-3 rounded-lg col-span-2 md:col-span-1">
+                      <p className="text-xs text-muted-foreground">Would Take Again</p>
+                       <p className="text-lg font-bold text-primary">
+                         {professorData.would_take_again_percent?.toFixed(0) ?? 'N/A'}%
+                       </p>
+                    </div>
+                   </div>
+
+                  {totalRatings > 0 ? (
+                    <div>
+                      <h4 className="font-semibold mb-2 text-center">Rating Distribution ({totalRatings} ratings)</h4>
+                       <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                           <BarChart data={ratingData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                              <XAxis type="number" hide />
+                              <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} width={80} />
+                              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(200, 200, 200, 0.1)' }}/>
+                              <Bar dataKey="count" barSize={20} radius={[4, 4, 4, 4]}>
+                                 {ratingData.map((entry, index) => (
+                                   <Cell key={`cell-${index}`} fill={entry.color} />
+                                 ))}
+                              </Bar>
+                           </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                   </div>
+                 ) : (
+                   <p className="text-sm text-muted-foreground text-center">No rating distribution data available.</p>
+                 )}
+
+                  {professorData.rmp_link && (
+                    <Button variant="link" asChild className="p-0 h-auto">
+                       <a href={professorData.rmp_link} target="_blank" rel="noopener noreferrer">
+                         View on RateMyProfessors
+                       </a>
+                    </Button>
+                  )}
+                </div>
+              )}
+            </AccordionContent>
+         </AccordionItem>
+      </Accordion>
+    );
+  };
   const PrevClasses = ({ sections, semesters}: { sections: Section[], semesters: string[], instructors: string[]}) => {
     const [openSem, setOpenSem] = React.useState(false)
     const [valueSem, setValueSem] = React.useState("")
@@ -409,6 +554,14 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
                     </div>
                   )}
                 </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="professors" className="border-none">
+                  <AccordionTrigger className="py-2">Past Professors</AccordionTrigger>
+                  <AccordionContent>
+                    {instructors.map((instructor) => (
+                      <ProfessorCard key={instructor} instructor={instructor} />
+                    ))}
+                  </AccordionContent>
               </AccordionItem>
             </Accordion>
           ) : (

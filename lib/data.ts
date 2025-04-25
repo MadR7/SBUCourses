@@ -2,6 +2,8 @@ import { prisma } from "./prisma";
 import { cache } from 'react'
 import { z } from 'zod'
 import { unstable_cache } from "next/cache";
+import { professors } from "@prisma/client";
+
 export const courseQuerySchema = z.object({
   department: z.array(z.string()).optional(),
   sbc: z.array(z.string()).optional(),
@@ -57,6 +59,23 @@ export const getSectionsByCourse = cache(async(course_id: string)=>{
   });
   return sections;
 })
+
+export const getProfessorByName = cache(async (name: string): Promise<professors | null> => {
+  if (!name) {
+    return null;
+  }
+  try {
+    const professor = await prisma.professors.findFirst({
+      where: {
+        name: name,
+      },
+    });
+    return professor;
+  } catch (error) {
+    console.error(`Error fetching professor ${name}:`, error);
+    return null;
+  }
+});
 
 export const getDepartments = unstable_cache(
   async () => {
