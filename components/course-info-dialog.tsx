@@ -20,7 +20,7 @@ interface CourseInfoDialogProps {
 export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, handleClose }: CourseInfoDialogProps) {
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeAccordionItem, setActiveAccordionItem] = useState<string | undefined>("course-info");
+  const [activeAccordionItems, setActiveAccordionItems] = useState<string[]>(["course-info"]);
   const professorRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [openProfessor, setOpenProfessor] = useState<string | null>(null);
 
@@ -30,7 +30,13 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
 
     const instructorId = `professor-card-${instructorName.replace(/\\s+/g, '-')}`;
     setOpenProfessor(instructorName);
-    setActiveAccordionItem("professors");
+
+    setActiveAccordionItems(prevItems => {
+      if (prevItems.includes("professors")) {
+        return prevItems;
+      }
+      return [...prevItems, "professors"];
+    });
 
     setTimeout(() => {
       const professorElement = professorRefs.current[instructorId];
@@ -68,9 +74,9 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
     const fetchSections = async () => {
       if (course?.course_id) {
         setLoading(true);
-        setSections([]); // Clear previous sections
-        setActiveAccordionItem("course-info"); // Reset accordion
-        setOpenProfessor(null); // Reset open professor
+        setSections([]);
+        setActiveAccordionItems(["course-info"]);
+        setOpenProfessor(null);
         try {
           // Use relative path for API route
           const response = await fetch(`/api/sections/${encodeURIComponent(course.course_id)}`);
@@ -121,10 +127,9 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
         <div className="overflow-y-auto flex-1 px-6 pb-6 pt-4"> {/* Added pt-4 */}
           {course ? (
             <Accordion
-              value={activeAccordionItem}
-              onValueChange={setActiveAccordionItem}
-              type="single"
-              collapsible
+              value={activeAccordionItems}
+              onValueChange={setActiveAccordionItems}
+              type="multiple"
               className="space-y-4"
             >
               {/* Course Information Section */}
