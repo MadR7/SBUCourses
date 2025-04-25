@@ -20,7 +20,6 @@ interface CourseInfoDialogProps {
 export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, handleClose }: CourseInfoDialogProps) {
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeAccordionItems, setActiveAccordionItems] = useState<string[]>(["course-info"]);
   const professorRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [openProfessor, setOpenProfessor] = useState<string | null>(null);
 
@@ -30,13 +29,6 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
 
     const instructorId = `professor-card-${instructorName.replace(/\\s+/g, '-')}`;
     setOpenProfessor(instructorName);
-
-    setActiveAccordionItems(prevItems => {
-      if (prevItems.includes("professors")) {
-        return prevItems;
-      }
-      return [...prevItems, "professors"];
-    });
 
     setTimeout(() => {
       const professorElement = professorRefs.current[instructorId];
@@ -75,7 +67,6 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
       if (course?.course_id) {
         setLoading(true);
         setSections([]);
-        setActiveAccordionItems(["course-info"]);
         setOpenProfessor(null);
         try {
           // Use relative path for API route
@@ -112,7 +103,7 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
     >
       <div
         onClick={handleDialogClick} // Prevent closing when clicking inside content
-        className="bg-card border rounded-lg shadow-xl text-card-foreground w-[95%] max-w-4xl h-[90vh] overflow-hidden flex flex-col"
+        className="bg-card border rounded-lg shadow-xl text-card-foreground w-[95%] max-w-8xl h-[90vh] overflow-hidden flex flex-col"
       >
         <div className="px-6 py-4 border-b">
           <div className="text-lg text-center font-bold">
@@ -124,105 +115,100 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
           {/* <button onClick={handleClose} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">&times;</button> */}
         </div>
 
-        <div className="overflow-y-auto flex-1 px-6 pb-6 pt-4"> {/* Added pt-4 */}
-          {course ? (
-            <Accordion
-              value={activeAccordionItems}
-              onValueChange={setActiveAccordionItems}
-              type="multiple"
-              className="space-y-4"
-            >
-              {/* Course Information Section */}
-              <AccordionItem value="course-info" className="border-none">
-                <AccordionTrigger className="text-base font-semibold py-2 hover:no-underline data-[state=open]:text-primary">Course Information</AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-4 pt-2"> {/* Added pt-2 */}
-                    <div>
-                      <h3 className="font-semibold text-lg">{course.Title}</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-background p-3 rounded-lg">
-                          <p className="text-sm text-muted-foreground">SBCs</p>
-                          <p className="text-md font-semibold text-green-600">{course.SBCs?.join(', ') || 'None'}</p>
+        {/* Main content area - Changed to flex row layout */}
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden"> 
+
+            {/* Left Column: Course Info & Past Classes */}
+            <div className="flex-1 md:w-1/2 overflow-y-auto p-6 space-y-6"> {/* Added padding & space */}
+              {course ? (
+                <>
+                  {/* Course Information Section (No longer an Accordion Item) */}
+                  <div>
+                     <h2 className="text-xl font-semibold mb-4 border-b pb-2">Course Information</h2>
+                     <div className="space-y-4 pt-2"> 
+                        <div>
+                          <h3 className="font-semibold text-lg">{course.Title}</h3>
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4"> {/* Adjusted grid */}
+                            <div className="bg-background p-3 rounded-lg">
+                              <p className="text-sm text-muted-foreground">SBCs</p>
+                              <p className="text-md font-semibold text-green-600">{course.SBCs?.join(', ') || 'None'}</p>
+                            </div>
+                            <div className="bg-background p-3 rounded-lg">
+                              <p className="text-sm text-muted-foreground">Credits:</p>
+                              <p className="text-md font-semibold text-primary">{course.Credits?.toString() ?? 'N/A'}</p>
+                            </div>
                         </div>
                         <div className="bg-background p-3 rounded-lg">
-                          <p className="text-sm text-muted-foreground">Credits:</p>
-                          <p className="text-md font-semibold text-primary">{course.Credits?.toString() ?? 'N/A'}</p>
+                          <p className="text-sm text-muted-foreground">Prerequisites:</p>
+                          <p className="text-md font-semibold text-primary">{course.Prerequisites || 'None'}</p>
                         </div>
-                    </div>
-                    <div className="bg-background p-3 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Prerequisites:</p>
-                      <p className="text-md font-semibold text-primary">{course.Prerequisites || 'None'}</p>
-                    </div>
-                    <div className="bg-background p-3 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Department</p>
-                      <p className="font-semibold">{course.Department}</p>
-                    </div>
-                    <div className="bg-background p-3 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Description</p>
-                      <p className="font-semibold">{course.Description || 'No description available.'}</p>
-                    </div>
+                        <div className="bg-background p-3 rounded-lg">
+                          <p className="text-sm text-muted-foreground">Department</p>
+                          <p className="font-semibold">{course.Department}</p>
+                        </div>
+                        <div className="bg-background p-3 rounded-lg">
+                          <p className="text-sm text-muted-foreground">Description</p>
+                          <p className="font-semibold">{course.Description || 'No description available.'}</p>
+                        </div>
+                      </div>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
 
-              {/* Past Classes Section */}
-              <AccordionItem value="sections" className="border-none">
-                <AccordionTrigger className="text-base font-semibold py-2 hover:no-underline data-[state=open]:text-primary">Past Classes</AccordionTrigger>
-                <AccordionContent>
-                  {loading ? (
-                    <div className="flex items-center justify-center py-6">
-                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                    </div>
-                  ) : sections.length > 0 ? (
-                    <div className="space-y-2 pt-2"> {/* Added pt-2 */}
-                      <PrevClasses
-                        sections={sections}
-                        semesters={semesters}
-                        instructors={instructors}
-                        onInstructorClick={handleInstructorClick}
-                      />
-                    </div>
-                  ) : (
-                    <div className="text-center py-6 text-muted-foreground">
-                      No past section data available for this course.
-                    </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
+                  {/* Past Classes Section (No longer an Accordion Item) */}
+                  <div>
+                      <h2 className="text-xl font-semibold mb-4 border-b pb-2">Past Classes</h2>
+                       {loading ? (
+                        <div className="flex items-center justify-center py-6">
+                          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                        </div>
+                      ) : sections.length > 0 ? (
+                        <div className="space-y-2 pt-2">
+                          <PrevClasses
+                            sections={sections}
+                            semesters={semesters}
+                            instructors={instructors}
+                            onInstructorClick={handleInstructorClick}
+                          />
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 text-muted-foreground">
+                          No past section data available for this course.
+                        </div>
+                      )}
+                  </div>
+                </>
+              ) : (
+                <LoadingSkeleton /> // Show skeleton if course data is loading
+              )}
+            </div>
 
-              {/* Past Professors Section */}
-              <AccordionItem value="professors" className="border-none">
-                <AccordionTrigger className="text-base font-semibold py-2 hover:no-underline data-[state=open]:text-primary">Past Professors</AccordionTrigger>
-                <AccordionContent>
-                  {instructors.length > 0 ? (
-                     <div className="space-y-2 pt-2"> {/* Added pt-2 */}
-                        {instructors.map((instructor) => {
-                          const professorId = `professor-card-${instructor.replace(/\\s+/g, '-')}`;
-                          return (
-                            <ProfessorCard
-                              key={instructor}
-                              instructor={instructor}
-                              isOpen={openProfessor === instructor}
-                              onToggle={setOpenProfessor}
-                              professorId={professorId}
-                              professorRef={(el) => professorRefs.current[professorId] = el}
-                            />
-                          );
-                        })}
-                     </div>
-                  ) : (
-                     <div className="text-center py-6 text-muted-foreground">
-                       No past professor data available for this course.
-                     </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          ) : (
-            <LoadingSkeleton /> // Use the imported skeleton
-          )}
-        </div>
+            {/* Right Column: Past Professors */}
+            <div className="flex-1 md:w-1/2 overflow-y-auto p-6 border-t md:border-t-0 md:border-l"> {/* Added padding & border */}
+               <h2 className="text-xl font-semibold mb-4 border-b pb-2">Past Professors</h2>
+                {instructors.length > 0 ? (
+                  <div className="space-y-2 pt-2">
+                    {instructors.map((instructor) => {
+                      const professorId = `professor-card-${instructor.replace(/\\s+/g, '-')}`;
+                      return (
+                        <ProfessorCard
+                          key={instructor}
+                          instructor={instructor}
+                          isOpen={openProfessor === instructor}
+                          onToggle={setOpenProfessor}
+                          professorId={professorId}
+                          professorRef={(el) => professorRefs.current[professorId] = el}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    No past professor data available for this course.
+                  </div>
+                )}
+             </div>
+
+        </div> {/* End flex row */} 
       </div>
     </div>
   );
