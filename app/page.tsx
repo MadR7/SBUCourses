@@ -75,7 +75,7 @@ export default async function Home({
                     <div className="text-sm">
                         {/* Credits and links to creators */}
                         <span>Made with ❤️ by </span>
-                        <a className="underline" href="https://www.github.com/MadR7" target="_blank" rel="noopener noreferrer">Madhav Rapelli</a> and <a className="underline" href="https://www.github.com/thesgordon" target="_blank" rel="noopener noreferrer">Gordon Sun</a>
+                        <a className="underline" href="https://www.github.com/MadR7" target="_blank" rel="noopener noreferrer">Madhav Rapelli</a> and <a className="underline" href="https://www.github.com/thegordon" target="_blank" rel="noopener noreferrer">Gordon Sun</a>
                     </div>
                 </div>
                 </div>
