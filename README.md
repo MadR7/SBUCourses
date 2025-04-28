@@ -15,8 +15,7 @@
 *   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 *   **UI Components:** [shadcn/ui](https://ui.shadcn.com/) (built on Radix UI and Tailwind)
 *   **Database ORM:** [Prisma](https://www.prisma.io/)
-*   **Database:** PostgreSQL (or database compatible with Prisma)
-*   **Deployment:** (Not specified, likely Vercel or similar)
+*   **Database:** Supabase (PostgreSQL)
 
 ## 🚀 Getting Started
 
