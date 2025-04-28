@@ -239,7 +239,7 @@ export const ProfessorCard = memo(function ProfessorCard({ instructor, isOpen, o
 
                 {/* Link to RateMyProfessors */}
                 {professorData.rmp_link && (
-                  <Button variant="link" asChild className="p-0 h-auto mt-2"> {/* Added margin-top */}
+                  <Button variant="link" className="p-0 h-auto mt-2"> 
                     <a href={professorData.rmp_link} target="_blank" rel="noopener noreferrer">
                       View on RateMyProfessors
                     </a>

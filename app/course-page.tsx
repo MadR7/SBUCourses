@@ -176,17 +176,6 @@ export function CoursePage({ initialCourses, initialDepartments, initialSBCs }: 
     }, [debouncedSearchInput, currentMajors, currentSBCs, updateFilters]);
 
     /**
-     * Effect to clear the local search input state if the URL's search param is removed (e.g., by navigation).
-     */
-    useEffect(() => {
-        if (!searchParams.get("search") && searchInput) { // Only update if state is out of sync
-            setSearchInput("");
-            // No need to call updateFilters here, the effect above handles debounced changes
-        }
-    }, [searchParams, searchInput]);
-
-
-    /**
      * Memoized list of available courses to display.
      * Filters out courses that are currently selected (commented out functionality).
      */
