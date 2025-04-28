@@ -161,37 +161,50 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
   useEffect(() => {
     /** Fetches Reddit links from the API. */
     const fetchRedditLinks = async () => {
-      // Skip fetch if course number is not available
+      // Ensure course number exists before fetching
       if (!course?.Course_Number) {
+        setRedditError("Course number not available.");
         setRedditLinks([]);
-        setRedditError(null); // Clear any previous error
-        setRedditLoading(false);
         return;
       }
 
-      // Reset state and start loading
       setRedditLoading(true);
       setRedditError(null);
       setRedditLinks([]); // Clear previous links
 
       try {
-        // Fetch links from the API endpoint
         const response = await fetch(`/api/reddit-links/${course.Course_Number}`);
         if (!response.ok) {
-          // Handle API errors
-          const errorData = await response.json().catch(() => ({})); // Try parsing error JSON
-          setRedditError(errorData.error || `Failed to fetch Reddit links (${response.status})`);
+          // Try to get error details, default to status text
+          const errorData = await response.json().catch(() => ({ message: response.statusText }));
+          // Check for specific 'not found' message from API
+          if (response.status === 404 && errorData.message === 'No Reddit links found for this course') {
+            setRedditLinks([]); // Treat as no links found, not an error
+          } else {
+            throw new Error(errorData.message || 'Failed to fetch');
+          }
         } else {
-          // Update state with fetched links
-          const data: RedditLink[] = await response.json();
-          setRedditLinks(data);
+          const data = await response.json();
+          // Check if post_data exists and is a non-empty string
+          if (data.post_data && typeof data.post_data === 'string') {
+            try {
+              // Parse the JSON string inside post_data
+              const parsedLinks: RedditLink[] = JSON.parse(data.post_data);
+              setRedditLinks(parsedLinks);
+            } catch (parseError) {
+              console.error("Error parsing Reddit links JSON:", parseError);
+              throw new Error('Failed to parse Reddit link data.');
+            }
+          } else {
+            // Handle cases where post_data is missing, null, or not a string
+            setRedditLinks([]);
+          }
         }
-      } catch (err) {
-        // Handle network or unexpected errors
-        console.error("Failed to fetch Reddit links:", err);
-        setRedditError("Failed to load Reddit links. Check network connection.");
+      } catch (error: any) {
+        console.error("Error fetching Reddit links:", error);
+        setRedditError(error.message || "An unknown error occurred");
+        setRedditLinks([]); // Ensure links are cleared on error
       } finally {
-        // Stop loading indicator
         setRedditLoading(false);
       }
     };

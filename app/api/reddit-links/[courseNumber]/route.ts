@@ -1,8 +1,5 @@
-import { PrismaClient } from '@prisma/client';
 import { NextResponse } from 'next/server';
-
-// Initialize Prisma client directly for this route
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 /**
  * Handles GET requests to fetch stored Reddit post data for a specific course number.
@@ -53,8 +50,5 @@ export async function GET(
   } catch (error) {
     console.error(`Error fetching Reddit links for ${courseNumber}:`, error);
     return NextResponse.json({ error: 'Failed to fetch Reddit links' }, { status: 500 });
-  } finally {
-    // Disconnect Prisma client
-    await prisma.$disconnect();
   }
 }
