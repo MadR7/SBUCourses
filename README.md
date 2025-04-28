@@ -2,7 +2,7 @@
 
 [SBUCourses](https://sbucourses.com) is a web application designed to help Stony Brook University students plan their course schedules effectively. It provides an intuitive interface to browse courses, view detailed information (including past professors, syllabi, and community links).
 
-## ✨ Features (Current & Planned)
+## ✨ Features
 
 *   **Course Browsing:** Easily search and filter courses by department, number, title, or SBCs.
 *   **Detailed Course Info:** View credits, descriptions, prerequisites, past sections, professors (with RateMyProfessors integration), historical grade data, past syllabi (with user uploads), and relevant Reddit discussions.
@@ -87,4 +87,4 @@ Please provide a clear description of your changes in the Pull Request.
 
 ## 📜 License
 
-This project is open source. (Consider adding a specific license file, e.g., MIT License).
+This project is open source.
