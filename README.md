@@ -42,6 +42,7 @@ Follow these steps to set up the project locally:
         ```env
         DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
         ```
+
 4.  **Set up the database:**
     *   Ensure you have a running PostgreSQL database instance matching the `DATABASE_URL`.
     *   Apply database migrations:
