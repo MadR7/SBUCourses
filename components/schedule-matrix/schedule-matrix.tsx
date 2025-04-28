@@ -1,3 +1,13 @@
+/**
+ * @file components/schedule-matrix/schedule-matrix.tsx
+ * @summary Defines the ScheduleMatrix component.
+ * @description This component was intended to display selected courses in a visual weekly schedule grid format.
+ * It included features like highlighting courses on hover and identifying courses occupying specific time slots.
+ *
+ * @note This component is currently UNUSED and the entire file content is commented out.
+ * It might be legacy code or a feature that was planned but not implemented or later removed.
+ */
+
 // "use client";
 
 // import { useState, useCallback } from "react";

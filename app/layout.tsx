@@ -9,7 +9,7 @@ import LoadingCourses from './loading';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'SBUScheduler',
+  title: 'SBUCourses',
   description: 'Course scheduling made easy for Stony Brook University students'
 };
 

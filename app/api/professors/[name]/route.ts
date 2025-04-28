@@ -2,6 +2,22 @@
 import { NextResponse } from 'next/server';
 import { getProfessorByName } from '@/lib/data'; // Import the existing data fetching function
 
+/**
+ * Handles GET requests for a specific professor by name provided in the URL path.
+ * Example: /api/professors/Jane%20Doe
+ *
+ * @async
+ * @export
+ * @param {Request} request - The incoming Next.js request object (unused in this handler).
+ * @param {object} context - The context object containing route parameters.
+ * @param {object} context.params - The route parameters.
+ * @param {string} context.params.name - The URL-encoded name of the professor from the dynamic segment.
+ * @returns {Promise<NextResponse>} A NextResponse object containing:
+ * - The professor's data in JSON format (status 200) if found.
+ * - An error message (status 400) if the name parameter is invalid.
+ * - An error message (status 404) if the professor is not found.
+ * - An error message (status 500) if there's a server error during data fetching.
+ */
 export async function GET(
   request: Request,
   { params }: { params: { name: string } }
@@ -22,4 +38,4 @@ export async function GET(
     console.error(`Error fetching professor ${name}:`, error);
     return NextResponse.json({ error: 'Failed to fetch professor data' }, { status: 500 });
   }
-} 
+}

@@ -4,11 +4,28 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/
 import { Bar, BarChart, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { gradeColorMap, gradeOrderMap } from '@/lib/constants/grades';
 
+/**
+ * Props for the SectionCard component.
+ *
+ * @interface SectionCardProps
+ * @property {Section} section - The section data object to display.
+ * @property {(instructor: string) => void} onInstructorClick - Callback function executed when the instructor's name is clicked. Passes the instructor's name.
+ */
 interface SectionCardProps {
   section: Section;
   onInstructorClick: (instructor: string) => void;
 }
 
+/**
+ * A card component that displays detailed information about a specific course section.
+ * It shows the section code, type, semester, and instructor (clickable).
+ * Includes an accordion section revealing grade distribution data visualized with
+ * Bar and Pie charts using the Recharts library.
+ *
+ * @component
+ * @param {SectionCardProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered SectionCard component.
+ */
 export const SectionCard = ({ section, onInstructorClick }: SectionCardProps) => (
   <Accordion type="single" defaultValue="section-info" collapsible className="space-y-4">
     <div className="bg-background p-4 rounded-lg mb-2">

@@ -3,7 +3,6 @@ import { type Course } from "@/types/Course";
 import { type Section } from "@/types/Section";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Loader2, ExternalLink, AlertCircle } from "lucide-react";
-
 // Import extracted components, hooks, and types
 import LoadingSkeleton from './course-info/loading-skeleton';
 import PrevClasses from './course-info/prev-classes';
@@ -14,77 +13,121 @@ import { type professors } from "@prisma/client";
 import { Cell } from 'recharts';
 import SyllabiCard from './syllabi-card';
 
-// Define the structure expected inside post_data JSON string
+/**
+ * Structure for Reddit link objects fetched from the API.
+ * @interface RedditLink
+ * @property {string} url - URL to the Reddit post/comment.
+ * @property {string} [title] - Title of the Reddit post (optional).
+ */
 interface RedditLink {
+    /** URL to the Reddit post/comment. */
     url: string;
-    title?: string; // Optional title
+    /** Title of the Reddit post (optional). */
+    title?: string;
     // Add other fields if they exist in your JSON data
 }
 
+/**
+ * Props for CourseInfoDialog.
+ */
 interface CourseInfoDialogProps {
+  /** Controls dialog visibility. */
   popUp: boolean;
+  /** Course data to display (null if none selected). */
   course: Course | null;
+  /** Callback to close the dialog. */
   handleClose: () => void;
 }
 
+/**
+ * Memoized modal dialog displaying detailed course information.
+ * Fetches related data (sections, Reddit links) and uses an accordion layout.
+ *
+ * @component
+ * @param {CourseInfoDialogProps} props Component props.
+ * @returns {JSX.Element | null} Rendered dialog or null.
+ */
 export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, handleClose }: CourseInfoDialogProps) {
+  // --- Sections State ---
+  /** State holding the array of fetched past sections for the course. */
   const [sections, setSections] = useState<Section[]>([]);
-  const [loading, setLoading] = useState(false);
+  /** State indicating if past sections are currently being fetched. */
+  const [loading, setLoading] = useState(false); // Sections loading state
+
+  // --- UI State ---
+  /** State holding the values (ids) of the currently open accordion items. */
   const [activeAccordionItems, setActiveAccordionItems] = useState<string[]>(["course-info"]);
+  /** Ref object to store references to ProfessorCard elements for scrolling. */
   const professorRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  /** State storing the name of the currently expanded professor card, or null if none. */
   const [openProfessor, setOpenProfessor] = useState<string | null>(null);
 
-  // State for Reddit Links
+  // --- Reddit Links State ---
+  /** State holding the array of fetched Reddit links. */
   const [redditLinks, setRedditLinks] = useState<RedditLink[]>([]);
+  /** State indicating if Reddit links are currently being fetched. */
   const [redditLoading, setRedditLoading] = useState(false);
+  /** State storing any error message from fetching Reddit links. */
   const [redditError, setRedditError] = useState<string | null>(null);
 
   // --- Event Handlers ---
-  const handleInstructorClick = useCallback((instructorName: string) => {
-    if (instructorName === 'TBA') return;
 
-    const instructorId = `professor-card-${instructorName.replace(/\\s+/g, '-')}`;
-    setOpenProfessor(instructorName);
-
-    setActiveAccordionItems(prevItems => {
-      if (prevItems.includes("professors")) {
-        return prevItems;
-      }
-      return [...prevItems, "professors"];
-    });
-
-    setTimeout(() => {
-      const professorElement = professorRefs.current[instructorId];
-      if (professorElement) {
-        professorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      } else {
-        console.warn(`Could not find professor element for ID: ${instructorId}`);
-      }
-    }, 100);
-  }, []);
-
+  /**
+   * Prevents dialog closure when clicking inside the dialog content area.
+   * This stops the `onClick` handler on the backdrop from firing.
+   * @param {React.MouseEvent<HTMLDivElement>} e The click event.
+   */
   const handleDialogClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Stop propagation if the click is inside the dialog content
     e.stopPropagation();
   };
 
+  /**
+   * Handles clicking an instructor name. Opens the 'professors' accordion,
+   * sets the open professor state, and scrolls the professor's card into view.
+   * @param {string} instructorName The name of the instructor clicked.
+   */
+  const handleInstructorClick = useCallback((instructorName: string) => {
+    if (instructorName === 'TBA') return;
+
+    const instructorId = `professor-card-${instructorName.replace(/\s+/g, '-')}`;
+    setOpenProfessor(instructorName);
+
+    // Ensure professors accordion is open
+    setActiveAccordionItems(prevItems =>
+        prevItems.includes("professors") ? prevItems : [...prevItems, "professors"]
+    );
+
+    // Scroll professor card into view (with delay)
+    setTimeout(() => {
+      professorRefs.current[instructorId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }, []);
+
   // --- Effects ---
+
+  /**
+   * Effect for Escape key handling and body scroll management.
+   * Adds/removes keydown listener and toggles body overflow style based on `popUp` state.
+   */
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        handleClose();
-      }
+      if (event.key === 'Escape') handleClose();
     }
     if (popUp) {
       window.addEventListener("keydown", handleEscapeKey);
-      document.body.style.overflow = 'hidden'; // Disable body scroll
+      document.body.style.overflow = 'hidden';
       return () => {
         window.removeEventListener("keydown", handleEscapeKey);
-        document.body.style.overflow = 'unset'; // Re-enable body scroll
+        document.body.style.overflow = 'unset';
       };
     }
   }, [popUp, handleClose]);
 
+  /**
+   * Effect to fetch past sections data when the `course.course_id` changes.
+   * Updates sections state and handles loading/error states.
+   * Resets related state, handles loading/error states.
+   */
   useEffect(() => {
     const fetchSections = async () => {
       if (course?.course_id) {
@@ -93,102 +136,98 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
         setActiveAccordionItems(["course-info"]);
         setOpenProfessor(null);
         try {
-          // Use relative path for API route
           const response = await fetch(`/api/sections/${encodeURIComponent(course.course_id)}`);
-          if (!response.ok) {
-            throw new Error('Failed to fetch sections');
-          }
-          const data = await response.json();
+          if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+          const data: Section[] = await response.json();
           setSections(data);
         } catch (error) {
           console.error('Error fetching sections:', error);
-          // Optionally, set an error state here to display to the user
+          setSections([]);
         } finally {
           setLoading(false);
         }
+      } else {
+         setSections([]);
+         setLoading(false);
       }
     };
     fetchSections();
+  }, [course?.course_id]);
 
-    // Fetch Reddit Links
+  /**
+   * Effect to fetch Reddit links related to the course when the `course.Course_Number` changes.
+   * Sets loading and error states accordingly.
+   */
+  useEffect(() => {
+    /** Fetches Reddit links from the API. */
     const fetchRedditLinks = async () => {
-      if (course?.Course_Number) { // Use Course_Number here
-        setRedditLoading(true);
-        setRedditError(null);
-        setRedditLinks([]); // Clear previous links
-        try {
-          const response = await fetch(`/api/reddit-links/${encodeURIComponent(course.Course_Number)}`);
-          const data = await response.json();
+      // Skip fetch if course number is not available
+      if (!course?.Course_Number) {
+        setRedditLinks([]);
+        setRedditError(null); // Clear any previous error
+        setRedditLoading(false);
+        return;
+      }
 
-          if (response.status === 404) {
-            // No links found, not an error
-            setRedditLinks([]);
-          } else if (!response.ok) {
-            throw new Error(data.message || data.error || 'Failed to fetch Reddit links');
-          } else if (data.post_data) {
-            // Parse the JSON string from post_data
-            try {
-              const parsedLinks = JSON.parse(data.post_data);
-              // Basic validation: check if it's an array
-              if (Array.isArray(parsedLinks)) {
-                 setRedditLinks(parsedLinks as RedditLink[]);
-              } else {
-                 console.error('Parsed Reddit post_data is not an array:', parsedLinks);
-                 setRedditError('Failed to parse Reddit link data format.');
-                 setRedditLinks([]);
-              }
-            } catch (parseError) {
-              console.error('Error parsing Reddit post_data JSON:', parseError);
-              setRedditError('Failed to parse Reddit link data.');
-              setRedditLinks([]);
-            }
-          } else {
-             // post_data was null/empty even with a 200 OK - treat as no links
-             setRedditLinks([]);
-          }
-        } catch (error: any) {
-          console.error('Error fetching Reddit links:', error);
-          setRedditError(error.message || 'Could not load Reddit links.');
-          setRedditLinks([]);
-        } finally {
-          setRedditLoading(false);
+      // Reset state and start loading
+      setRedditLoading(true);
+      setRedditError(null);
+      setRedditLinks([]); // Clear previous links
+
+      try {
+        // Fetch links from the API endpoint
+        const response = await fetch(`/api/reddit-links/${course.Course_Number}`);
+        if (!response.ok) {
+          // Handle API errors
+          const errorData = await response.json().catch(() => ({})); // Try parsing error JSON
+          setRedditError(errorData.error || `Failed to fetch Reddit links (${response.status})`);
+        } else {
+          // Update state with fetched links
+          const data: RedditLink[] = await response.json();
+          setRedditLinks(data);
         }
+      } catch (err) {
+        // Handle network or unexpected errors
+        console.error("Failed to fetch Reddit links:", err);
+        setRedditError("Failed to load Reddit links. Check network connection.");
+      } finally {
+        // Stop loading indicator
+        setRedditLoading(false);
       }
     };
 
     fetchRedditLinks();
-
-  }, [course?.course_id, course?.Course_Number]); // Add Course_Number dependency
+  }, [course?.Course_Number]); // Dependency: runs when course number changes
 
   // --- Hooks for derived data ---
   const semesters = useSemesters(sections);
   const instructors = useInstructors(sections);
 
   // --- Render Logic ---
-  if (!popUp) return null; // Don't render anything if popUp is false
+  if (!popUp) return null;
 
   return (
+    // Backdrop
     <div
       className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30"
-      onClick={handleClose} // Close dialog on backdrop click
-      aria-modal="true" // Accessibility
+      onClick={handleClose}
+      aria-modal="true"
       role="dialog"
     >
+      {/* Dialog Content */}
       <div
-        onClick={handleDialogClick} // Prevent closing when clicking inside content
+        onClick={handleDialogClick}
         className="bg-card border rounded-lg shadow-xl text-card-foreground w-[95%] max-w-4xl h-[90vh] overflow-hidden flex flex-col"
       >
+        {/* Header */}
         <div className="px-6 py-4 border-b">
           <div className="text-lg text-center font-bold">
-            {course ? course.Course_Number : (
-              <div className="h-7 w-36 bg-muted rounded animate-pulse mx-auto" /> // Centered skeleton
-            )}
+            {course ? course.Course_Number : <div className="h-7 w-36 bg-muted rounded animate-pulse mx-auto" />}
           </div>
-          {/* Optional: Add a close button here */}
-          {/* <button onClick={handleClose} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">&times;</button> */}
         </div>
 
-        <div className="overflow-y-auto flex-1 px-6 pb-6 pt-4"> {/* Added pt-4 */}
+        {/* Scrollable Body */}
+        <div className="overflow-y-auto flex-1 px-6 pb-6 pt-4">
           {course ? (
             <Accordion
               value={activeAccordionItems}
@@ -196,141 +235,122 @@ export const CourseInfoDialog = memo(function CourseInfoDialog({ popUp, course, 
               type="multiple"
               className="space-y-4"
             >
-              {/* Course Information Section */}
-              <AccordionItem value="course-info" className="border-none">
-                <AccordionTrigger className="text-base font-semibold py-2 hover:no-underline data-[state=open]:text-primary">Course Information</AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-4 pt-2"> {/* Added pt-2 */}
-                    <div>
-                      <h3 className="font-semibold text-lg">{course.Title}</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* --- Accordion Items --- */}
+               {/* Course Information Section */}
+               <AccordionItem value="course-info" className="border-none">
+                 <AccordionTrigger className="text-base font-semibold py-2 hover:no-underline data-[state=open]:text-primary">Course Information</AccordionTrigger>
+                 <AccordionContent>
+                   <div className="space-y-4 pt-2">
+                     <div><h3 className="font-semibold text-lg">{course.Title}</h3></div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       {/* Details: Credits, SBCs, Department */}
                         <div className="bg-background p-3 rounded-lg">
-                          <p className="text-sm text-muted-foreground">SBCs</p>
-                          <p className="text-md font-semibold text-green-600">{course.SBCs?.join(', ') || 'None'}</p>
+                         <p className="text-sm text-muted-foreground">Credits</p>
+                         {/* Fix: Convert bigint to string for rendering */}
+                         <p className="font-semibold">{course.Credits?.toString() ?? 'N/A'}</p>
+                       </div>
+                       <div className="bg-background p-3 rounded-lg">
+                         <p className="text-sm text-muted-foreground">SBCs</p>
+                         <p className="font-semibold">{course.SBCs?.join(', ') || <span className="text-xs text-muted-foreground italic">None</span>}</p>
                         </div>
-                        <div className="bg-background p-3 rounded-lg">
-                          <p className="text-sm text-muted-foreground">Credits:</p>
-                          <p className="text-md font-semibold text-primary">{course.Credits?.toString() ?? 'N/A'}</p>
-                        </div>
-                    </div>
-                    <div className="bg-background p-3 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Prerequisites:</p>
-                      <p className="text-md font-semibold text-primary">{course.Prerequisites || 'None'}</p>
-                    </div>
-                    <div className="bg-background p-3 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Department</p>
-                      <p className="font-semibold">{course.Department}</p>
-                    </div>
-                    <div className="bg-background p-3 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Description</p>
-                      <p className="font-semibold">{course.Description || 'No description available.'}</p>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Past Classes Section */}
-              <AccordionItem value="sections" className="border-none">
-                <AccordionTrigger className="text-base font-semibold py-2 hover:no-underline data-[state=open]:text-primary">Past Classes</AccordionTrigger>
-                <AccordionContent>
-                  {loading ? (
-                    <div className="flex items-center justify-center py-6">
-                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                    </div>
-                  ) : sections.length > 0 ? (
-                    <div className="space-y-2 pt-2"> {/* Added pt-2 */}
-                      <PrevClasses
-                        sections={sections}
-                        semesters={semesters}
-                        instructors={instructors}
-                        onInstructorClick={handleInstructorClick}
-                      />
-                    </div>
-                  ) : (
-                    <div className="text-center py-6 text-muted-foreground">
-                      No past section data available for this course.
-                    </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Past Professors Section */}
-              <AccordionItem value="professors" className="border-none">
-                <AccordionTrigger className="text-base font-semibold py-2 hover:no-underline data-[state=open]:text-primary">Past Professors</AccordionTrigger>
-                <AccordionContent>
-                  {instructors.length > 0 ? (
-                     <div className="space-y-2 pt-2"> {/* Added pt-2 */}
-                        {instructors.map((instructor) => {
-                          const professorId = `professor-card-${instructor.replace(/\\s+/g, '-')}`;
-                          return (
-                            <ProfessorCard
-                              key={instructor}
-                              instructor={instructor}
-                              isOpen={openProfessor === instructor}
-                              onToggle={setOpenProfessor}
-                              professorId={professorId}
-                              professorRef={(el) => professorRefs.current[professorId] = el}
-                            />
-                          );
-                        })}
+                       <div className="bg-background p-3 rounded-lg">
+                         <p className="text-sm text-muted-foreground">Department</p>
+                         <p className="font-semibold">{course.Department}</p>
+                       </div>
                      </div>
-                  ) : (
-                     <div className="text-center py-6 text-muted-foreground">
-                       No past professor data available for this course.
+                     {/* Description */}
+                     <div className="bg-background p-3 rounded-lg">
+                       <p className="text-sm text-muted-foreground">Description</p>
+                       <p className="font-semibold">{course.Description || 'No description available.'}</p>
                      </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-              {/* Reddit Links Section */}
-              <AccordionItem value="reddit-links" className="border-none">
-                <AccordionTrigger className="text-base font-semibold py-2 hover:no-underline data-[state=open]:text-primary">Reddit Links</AccordionTrigger>
-                <AccordionContent>
-                  {redditLoading ? (
-                    <div className="flex items-center justify-center py-6">
-                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                    </div>
-                  ) : redditError ? (
-                    <div className="flex items-center justify-center py-6 text-destructive">
-                      <AlertCircle className="w-5 h-5 mr-2" />
-                      <span>{redditError}</span>
-                      {/* Optional: Add retry button here */}
-                    </div>
-                  ) : redditLinks.length > 0 ? (
-                    <div className="space-y-2 pt-2">
-                      {redditLinks.map((link, index) => (
-                        <a
-                          key={index} // Use index if links don't have unique IDs
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center p-3 bg-background rounded-lg border hover:bg-muted/50 transition-colors group"
-                        >
-                          <span className="truncate flex-1 mr-2 text-sm font-medium text-primary group-hover:underline">
-                             {link.title || link.url} {/* Display title or fallback to URL */}
-                          </span>
-                          <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
-                        </a>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-6 text-muted-foreground">
-                      No Reddit links found for this course.
-                    </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
+                   </div>
+                 </AccordionContent>
+               </AccordionItem>
 
-              {/* Past Syllabi Section */}
-              <AccordionItem value="syllabi" className="border-none">
-                <AccordionTrigger className="py-2">Past Syllabi</AccordionTrigger>
-                <AccordionContent>
-                  <SyllabiCard courseNumber={course?.Course_Number} />
-                </AccordionContent>
-              </AccordionItem>
+               {/* Past Classes Section */}
+               <AccordionItem value="past-classes" className="border-none">
+                 <AccordionTrigger className="text-base font-semibold py-2 hover:no-underline data-[state=open]:text-primary">Past Classes</AccordionTrigger>
+                 <AccordionContent>
+                   {loading ? (
+                     <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                   ) : sections.length > 0 ? (
+                     <PrevClasses
+                       sections={sections}
+                       semesters={semesters}
+                       instructors={instructors} // Pass instructors derived from useInstructors hook
+                       onInstructorClick={handleInstructorClick}
+                     />
+                   ) : (
+                     <p className="text-muted-foreground">No previous sections found for this course.</p>
+                   )}
+                 </AccordionContent>
+               </AccordionItem>
+
+               {/* Past Professors Section (renders ProfessorCard components) */}
+               <AccordionItem value="professors" className="border-none">
+                 <AccordionTrigger className="text-base font-semibold py-2 hover:no-underline data-[state=open]:text-primary">Past Professors</AccordionTrigger>
+                 <AccordionContent>
+                    {loading ? (
+                      <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                    ) : instructors.length > 0 ? (
+                      <div className="space-y-2 pt-2">
+                         {instructors.map((instructor) => {
+                           // Generate a unique ID for linking and scrolling
+                           const professorId = `professor-card-${instructor.replace(/\s+/g, '-')}`;
+                           return (
+                             <ProfessorCard
+                               key={instructor}
+                               instructor={instructor}
+                               isOpen={openProfessor === instructor}
+                               onToggle={setOpenProfessor}
+                               professorId={professorId}
+                               // Store ref in professorRefs map
+                               professorRef={(el) => professorRefs.current[professorId] = el}
+                             /> );
+                         })}
+                      </div>
+                    ) : (
+                       <div className="text-center py-6 text-muted-foreground">No past professor data.</div>
+                    )}
+                 </AccordionContent>
+               </AccordionItem>
+
+               {/* Reddit Links Section (fetches and displays links) */}
+               <AccordionItem value="reddit-links" className="border-none">
+                 <AccordionTrigger className="text-base font-semibold py-2 hover:no-underline data-[state=open]:text-primary">Reddit Links</AccordionTrigger>
+                 <AccordionContent>
+                    {/* Show loader while fetching */}
+                    {redditLoading ? (
+                      <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                    ) : redditError ? (
+                      // Show error message if fetch failed
+                      <div className="flex items-center justify-center py-6 text-destructive"><AlertCircle className="w-5 h-5 mr-2" /><span>{redditError}</span></div>
+                    ) : redditLinks.length > 0 ? (
+                      // Display list of links if available
+                      <div className="space-y-2 pt-2">
+                        {redditLinks.map((link, index) => (
+                          <a key={index} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center p-3 bg-background rounded-lg border hover:bg-muted/50 group">
+                            <span className="truncate flex-1 mr-2 text-sm font-medium text-primary group-hover:underline">{link.title || link.url}</span>
+                            <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary shrink-0" />
+                          </a> ))}
+                      </div>
+                    ) : (
+                      // Show message if no links were found
+                      <div className="text-center py-6 text-muted-foreground">No Reddit links found.</div>
+                    )}
+                 </AccordionContent>
+               </AccordionItem>
+
+               {/* Past Syllabi Section (renders SyllabiCard component) */}
+               <AccordionItem value="syllabi" className="border-none">
+                 <AccordionTrigger className="text-base font-semibold py-2 hover:no-underline data-[state=open]:text-primary">Past Syllabi</AccordionTrigger>
+                 <AccordionContent>
+                   <SyllabiCard courseNumber={course?.Course_Number} />
+                 </AccordionContent>
+               </AccordionItem>
             </Accordion>
           ) : (
-            <LoadingSkeleton /> // Use the imported skeleton
+            <LoadingSkeleton /> // Loading skeleton
           )}
         </div>
       </div>

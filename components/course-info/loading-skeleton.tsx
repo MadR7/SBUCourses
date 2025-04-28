@@ -1,5 +1,14 @@
 import React from 'react';
 
+/**
+ * A functional component that displays a skeleton loading indicator.
+ * It mimics the layout of the main course information section within the CourseInfoDialog
+ * to provide a visual placeholder while data is being fetched.
+ * Uses animated pulse effect on placeholder elements.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered loading skeleton UI.
+ */
 export const LoadingSkeleton = () => (
     <div className="space-y-4">
       <div>

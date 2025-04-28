@@ -3,6 +3,25 @@ import { NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
+/**
+ * Handles GET requests to fetch syllabus links for a specific course number.
+ * The course number is provided as a dynamic segment in the URL path.
+ * Example: /api/syllabi/CSE310
+ * Fetches relevant data from the `syllabi_links` table, ordered by semester and professor.
+ * Explicitly converts BigInt `row_num` to string for JSON serialization.
+ *
+ * @async
+ * @export
+ * @param {Request} request - The incoming Next.js request object (unused).
+ * @param {object} context - Context object containing route parameters.
+ * @param {object} context.params - Route parameters.
+ * @param {string} context.params.courseNumber - The course number from the URL path.
+ * @returns {Promise<NextResponse>} A NextResponse object containing:
+ * - An array of syllabus link objects (with `row_num` as string) in JSON format (status 200).
+ * - An error message (status 400) if the courseNumber parameter is missing.
+ * - A message indicating no syllabi found (status 404) if no records match.
+ * - An error message (status 500) if a server error occurs during fetching or data processing.
+ */
 export async function GET(
   request: Request,
   { params }: { params: { courseNumber: string } }

@@ -6,6 +6,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Check, ChevronsUpDown } from "lucide-react";
 import SectionCard from './section-card'; // Import the extracted component
 import { cn } from "@/lib/utils";
+
+/**
+ * Props for the PrevClasses component.
+ *
+ * @interface PrevClassesProps
+ * @property {Section[]} sections - An array of section objects representing past classes.
+ * @property {string[]} semesters - An array of unique semester strings available for filtering.
+ * @property {string[]} instructors - An array of unique instructor names available for filtering.
+ * @property {(instructor: string) => void} onInstructorClick - Callback function triggered when an instructor's name is clicked in a SectionCard.
+ */
 interface PrevClassesProps {
   sections: Section[];
   semesters: string[];
@@ -13,12 +23,30 @@ interface PrevClassesProps {
   onInstructorClick: (instructor: string) => void;
 }
 
+/**
+ * Displays a list of past sections for a course, with filtering options.
+ * Allows users to filter the displayed sections by semester and/or instructor
+ * using interactive dropdown menus.
+ *
+ * @component
+ * @param {PrevClassesProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered PrevClasses component with filters and section list.
+ */
 export const PrevClasses = ({ sections, semesters, instructors, onInstructorClick }: PrevClassesProps) => {
+  // State for controlling the semester dropdown popover
   const [openSem, setOpenSem] = useState(false);
+  // State for the currently selected semester value
   const [valueSem, setValueSem] = useState("");
+  // State for controlling the instructor dropdown popover
   const [openInstructor, setOpenInstructor] = useState(false);
+  // State for the currently selected instructor value
   const [valueInstructor, setValueInstructor] = useState("");
 
+  /**
+   * Memoized computation of sections filtered by the selected semester and instructor.
+   * Re-calculates only when sections, selected semester, or selected instructor changes.
+   * @returns {Section[]} The array of sections matching the current filter criteria.
+   */
   const filteredSections = useMemo(() => {
     // Start with all sections if no semester is selected, otherwise filter by semester
     let semesterFiltered = valueSem ? sections.filter((section) => section.semester === valueSem) : sections;
@@ -158,10 +186,12 @@ export const PrevClasses = ({ sections, semesters, instructors, onInstructorClic
       {/* Display Filtered Sections */}
       <div className="space-y-2">
         {filteredSections.length > 0 ? (
+            // Render a SectionCard for each section matching the filter criteria
             filteredSections.map((section) => (
               <SectionCard key={section.section_id} section={section} onInstructorClick={onInstructorClick} />
             ))
           ) : (
+            // Display message if no sections match the filter
             <p className="text-center text-muted-foreground py-4">No sections match the current filter.</p>
           )
         }
